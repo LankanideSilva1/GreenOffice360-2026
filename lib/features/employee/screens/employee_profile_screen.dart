@@ -12,6 +12,7 @@ class EmployeeProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final authProvider = context.watch<AuthProvider>();
     final user = authProvider.user;
+    final isManager = user?.role.toLowerCase() == 'manager';
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -22,6 +23,7 @@ class EmployeeProfileScreen extends StatelessWidget {
           department: user?.department.trim().isNotEmpty == true ? user!.department : '',
           greenScore: user?.greenScore ?? 0,
           points: user?.points ?? 0,
+          showManagerMode: isManager,
           onLogout: () async {
             await authProvider.logout();
             if (context.mounted) {
@@ -45,6 +47,7 @@ class EmployeeProfileContent extends StatelessWidget {
     required this.department,
     required this.greenScore,
     required this.points,
+    this.showManagerMode = false,
     this.onLogout,
   });
 
@@ -53,6 +56,7 @@ class EmployeeProfileContent extends StatelessWidget {
   final String department;
   final int greenScore;
   final int points;
+  final bool showManagerMode;
   final Future<void> Function()? onLogout;
 
   @override
@@ -61,6 +65,7 @@ class EmployeeProfileContent extends StatelessWidget {
     final reports = _clampValue((greenScore / 10).round() + 14, 1, 99);
     final challenges = _clampValue((greenScore ~/ 100) + 5, 1, 99);
     final redeemed = _clampValue((points ~/ 150) + 1, 1, 99);
+    final showEmployeeContent = !showManagerMode;
 
     return SingleChildScrollView(
       child: Padding(
@@ -88,7 +93,7 @@ class EmployeeProfileContent extends StatelessWidget {
             ),
             const SizedBox(height: 14),
             Text(
-              name,
+                  name,
               style: const TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.w700,
@@ -210,34 +215,36 @@ class EmployeeProfileContent extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 18),
-            Row(
-              children: [
-                Expanded(
-                  child: _StatCard(
-                    icon: Icons.insert_chart_outlined_rounded,
-                    value: '$reports',
-                    label: 'Reports',
+            if (showEmployeeContent) ...[
+              const SizedBox(height: 18),
+              Row(
+                children: [
+                  Expanded(
+                    child: _StatCard(
+                      icon: Icons.insert_chart_outlined_rounded,
+                      value: '$reports',
+                      label: 'Reports',
+                    ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _StatCard(
-                    icon: Icons.emoji_events_outlined,
-                    value: '$challenges',
-                    label: 'Challenges',
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _StatCard(
+                      icon: Icons.emoji_events_outlined,
+                      value: '$challenges',
+                      label: 'Challenges',
+                    ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _StatCard(
-                    icon: Icons.card_giftcard_outlined,
-                    value: '$redeemed',
-                    label: 'Redeemed',
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _StatCard(
+                      icon: Icons.card_giftcard_outlined,
+                      value: '$redeemed',
+                      label: 'Redeemed',
+                    ),
                   ),
-                ),
-              ],
-            ),
+                ],
+              ),
+            ],
             const SizedBox(height: 18),
             InkWell(
               onTap: onLogout,

@@ -319,13 +319,13 @@ class _LoginForm extends StatelessWidget {
                   }
 
                   switch (authProvider.role) {
-                    case 'admin':
-                      Navigator.pushNamedAndRemoveUntil(
-                        context,
-                        AppRoutes.adminDashboard,
-                        (route) => false,
-                      );
-                      break;
+                    // case 'admin':
+                    //   Navigator.pushNamedAndRemoveUntil(
+                    //     context,
+                    //     AppRoutes.adminDashboard,
+                    //     (route) => false,
+                    //   );
+                    //   break;
 
                     case 'manager':
                       Navigator.pushNamedAndRemoveUntil(

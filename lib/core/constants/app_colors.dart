@@ -49,4 +49,11 @@ class AppColors {
   static const softGreen = Color(0xFFEAF7F1);
   static const actionBackground = Color(0xFFF6F7F5);
   static const logout = Color(0xFFE15B5B);
+  static const managerBlue = Color(0xFF3F83F8);
+  static const managerPurple = Color(0xFF5146E5);
+  static const managerTeal = Color(0xFF11998E);
+  static const managerOrange = Color(0xFFE27A00);
+  static const managerGray = Color(0xFF94A3B8);
+  static const chartTrack = Color(0xFFF0F4F8);
+  static const chartGrid = Color(0xFFD9E2EC);
 }
