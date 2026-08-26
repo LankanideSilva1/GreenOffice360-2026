@@ -5,9 +5,11 @@ class EmployeeMainScreen extends StatefulWidget {
   const EmployeeMainScreen({
     super.key,
     this.homeTabContent,
+    this.profileTabContent,
   });
 
   final Widget? homeTabContent;
+  final Widget? profileTabContent;
 
   @override
   State<EmployeeMainScreen> createState() => _EmployeeMainScreenState();
@@ -31,7 +33,7 @@ class _EmployeeMainScreenState extends State<EmployeeMainScreen> {
       const _EmployeeScreenContent(title: 'Reports'),
       const _EmployeeScreenContent(title: 'Challenges'),
       const _EmployeeScreenContent(title: 'Rewards'),
-      const _EmployeeScreenContent(title: 'Profile'),
+      widget.profileTabContent ?? const _EmployeeScreenContent(title: 'Profile'),
     ];
 
     return Scaffold(

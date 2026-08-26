@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../auth/providers/auth_provider.dart';
 import 'employee_main_screen.dart';
+import 'employee_profile_screen.dart';
 
 class EmployeeDashboardScreen extends StatelessWidget {
   const EmployeeDashboardScreen({super.key});
@@ -12,7 +13,7 @@ class EmployeeDashboardScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final authProvider = context.watch<AuthProvider>();
     final user = authProvider.user;
-    final userName = user?.name.trim() ?? 'Employee';
+    final userName = user?.name.trim() ?? '';
     final firstName = _firstName(userName);
     final department = (user?.department.trim().isNotEmpty ?? false)
         ? user!.department.toUpperCase()
@@ -29,6 +30,7 @@ class EmployeeDashboardScreen extends StatelessWidget {
         greenScore: greenScore,
         sustainabilityPoints: sustainabilityPoints,
       ),
+      profileTabContent: const EmployeeProfileScreen(),
     );
   }
 
