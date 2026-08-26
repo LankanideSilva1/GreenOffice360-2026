@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:greenoffice360/features/auth/screens/login_screen.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../widgets/app_button.dart';
@@ -123,7 +124,7 @@ class _PortraitSplashContent extends StatelessWidget {
               onPressed: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(
-                    builder: (_) => const RegistrationScreen(),
+                    builder: (_) => const LoginScreen(),
                   ),
                 );
               },
@@ -233,7 +234,7 @@ class _LandscapeSplashContent extends StatelessWidget {
                       Navigator.of(context).push(
                         MaterialPageRoute(
                           builder: (_) =>
-                              const RegistrationScreen(),
+                              const LoginScreen(),
                         ),
                       );
                     },
@@ -242,22 +243,22 @@ class _LandscapeSplashContent extends StatelessWidget {
                   const SizedBox(height: 8),
 
                   // How it works
-                  Align(
-                    alignment: Alignment.center,
-                    child: TextButton(
-                      onPressed: () {
-                        // Navigate to How It Works
-                      },
-                      child: const Text(
-                        'How it works',
-                        style: TextStyle(
-                          color: AppColors.textDark,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ),
+                  // Align(
+                  //   alignment: Alignment.center,
+                  //   child: TextButton(
+                  //     onPressed: () {
+                  //       // Navigate to How It Works
+                  //     },
+                  //     child: const Text(
+                  //       'How it works',
+                  //       style: TextStyle(
+                  //         color: AppColors.textDark,
+                  //         fontSize: 15,
+                  //         fontWeight: FontWeight.w500,
+                  //       ),
+                  //     ),
+                  //   ),
+                  // ),
                 ],
               ),
             ),

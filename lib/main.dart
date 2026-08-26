@@ -4,6 +4,7 @@ import 'package:greenoffice360/core/routes/app_routes.dart';
 import 'package:greenoffice360/features/auth/providers/auth_provider.dart';
 import 'package:greenoffice360/features/auth/screens/login_screen.dart';
 import 'package:greenoffice360/features/auth/screens/registration_screen.dart';
+import 'package:greenoffice360/features/auth/screens/splash_screen.dart';
 import 'package:greenoffice360/features/employee/screens/employee_dashboard_screen.dart';
 import 'package:greenoffice360/features/employee/screens/employee_profile_screen.dart';
 import 'package:greenoffice360/features/manager/screens/manager_dashboard_screen.dart';
@@ -46,8 +47,9 @@ class GreenOfficeApp extends StatelessWidget {
       theme: AppTheme.lightTheme,
       debugShowCheckedModeBanner: false,
       // home: const SplashScreen(),
-      initialRoute: AppRoutes.login,
+      initialRoute: AppRoutes.splash,
        routes: {
+        AppRoutes.splash: (_) => const SplashScreen(),
         AppRoutes.login:
             (_) => const LoginScreen(),
 
