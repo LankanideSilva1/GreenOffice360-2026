@@ -45,12 +45,12 @@ class RegistrationDepartmentField extends StatelessWidget {
 
           icon: const Icon(
             Icons.keyboard_arrow_down,
-            color: Color(0xFF5E6B73),
+            color: AppColors.fieldDropdownIcon,
           ),
 
           decoration: InputDecoration(
             filled: true,
-            fillColor: Colors.white,
+            fillColor: AppColors.white,
 
             contentPadding:
                 const EdgeInsets.symmetric(
@@ -61,7 +61,7 @@ class RegistrationDepartmentField extends StatelessWidget {
               borderRadius:
                   BorderRadius.circular(10),
               borderSide: const BorderSide(
-                color: Color(0xFFD8D1CE),
+                color: AppColors.fieldBorder,
               ),
             ),
 
@@ -69,7 +69,7 @@ class RegistrationDepartmentField extends StatelessWidget {
               borderRadius:
                   BorderRadius.circular(10),
               borderSide: const BorderSide(
-                color: Color(0xFFD8D1CE),
+                color: AppColors.fieldBorder,
               ),
             ),
 

@@ -167,7 +167,7 @@ class _RegistrationContainer extends StatelessWidget {
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(26),
         border: Border.all(
-          color: const Color(0xFF6EC4EA),
+          color: AppColors.loginBorder,
           width: 2,
         ),
       ),
@@ -502,7 +502,7 @@ class _RegistrationFormState extends State<_RegistrationForm> {
 
         Container(
           height: 1,
-          color: const Color(0xFFD8D0CD),
+          color: AppColors.loginDivider,
         ),
       ],
     );
@@ -536,14 +536,14 @@ Widget passwordRequirement(String text, bool valid) {
       Icon(
         valid ? Icons.check_circle : Icons.cancel,
         size: 18,
-        color: valid ? Colors.green : Colors.grey,
+        color: valid ? AppColors.primary : AppColors.textSecondary,
       ),
       const SizedBox(width: 8),
       Text(
         text,
         style: TextStyle(
           fontSize: 13,
-          color: valid ? Colors.green : Colors.grey,
+          color: valid ? AppColors.primary : AppColors.textSecondary,
         ),
       ),
     ],

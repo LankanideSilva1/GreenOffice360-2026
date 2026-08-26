@@ -1,21 +1,30 @@
 import 'package:flutter/material.dart';
 
-class ManagerDashboardScreen extends StatefulWidget {
+import 'manager_main_screen.dart';
+
+class ManagerDashboardScreen extends StatelessWidget {
   const ManagerDashboardScreen({super.key});
 
   @override
-  State<ManagerDashboardScreen> createState() => _EmployeeDashboardScreenState();
+  Widget build(BuildContext context) {
+    return const ManagerMainScreen(
+      dashboardTabContent: _ManagerDashboardContent(),
+    );
+  }
 }
 
-class _EmployeeDashboardScreenState extends State<ManagerDashboardScreen> {
+class _ManagerDashboardContent extends StatelessWidget {
+  const _ManagerDashboardContent();
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Manager Dashboard'),
-      ),
-      body: const Center(
-        child: Text('Welcome to the Manager Dashboard!'),
+    return const Center(
+      child: Text(
+        'Manager Dashboard',
+        style: TextStyle(
+          fontSize: 30,
+          fontWeight: FontWeight.w700,
+        ),
       ),
     );
   }

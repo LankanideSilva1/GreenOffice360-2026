@@ -21,7 +21,7 @@ class GreenLogo extends StatelessWidget {
         borderRadius: BorderRadius.circular(999),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: AppColors.black.withOpacity(0.08),
             blurRadius: 12,
             offset: const Offset(0, 10),
           ),

@@ -31,10 +31,10 @@ class RegistrationEmailField extends StatelessWidget {
         Container(
           height: 52,
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: AppColors.white,
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
-              color: Color(0xFF9AA5AA),
+              color: AppColors.fieldIcon,
               // width: 1.5,
             ),
           ),
@@ -43,7 +43,7 @@ class RegistrationEmailField extends StatelessWidget {
               const SizedBox(width: 14),
               const Icon(
                 Icons.email_outlined,
-                color: Color(0xFF9AA5AA),
+                color: AppColors.fieldIcon,
                 size: 20,
               ),
               const SizedBox(width: 10),
@@ -59,7 +59,7 @@ class RegistrationEmailField extends StatelessWidget {
                   decoration: const InputDecoration(
                     hintText: 'alex.j@greenoffice360.com',
                     hintStyle: TextStyle(
-                      color: Color(0xFF9AA5AA),
+                      color: AppColors.fieldIcon,
                       fontWeight: FontWeight.w500,
                     ),
                     border: InputBorder.none,
@@ -74,12 +74,12 @@ class RegistrationEmailField extends StatelessWidget {
                   height: 26,
                   margin: const EdgeInsets.only(right: 12),
                   decoration: const BoxDecoration(
-                    color: Color(0xFFB7EFC7),
+                    color: AppColors.verifiedBackground,
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
                     Icons.check,
-                    color: Color(0xFF117B43),
+                    color: AppColors.verifiedIcon,
                     size: 18,
                   ),
                 ),
@@ -95,14 +95,14 @@ class RegistrationEmailField extends StatelessWidget {
               children: [
                 Icon(
                   Icons.check_circle,
-                  color: Color(0xFF1E9D62),
+                  color: AppColors.verifiedText,
                   size: 16,
                 ),
                 SizedBox(width: 6),
                 Text(
                   'Verified company address',
                   style: TextStyle(
-                    color: Color(0xFF1E9D62),
+                    color: AppColors.verifiedText,
                     fontSize: 12.5,
                     fontWeight: FontWeight.w600,
                   ),

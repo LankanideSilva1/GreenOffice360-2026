@@ -133,9 +133,9 @@ class EmployeeHomeDashboard extends StatelessWidget {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFDDEAE5),
+                  color: AppColors.profileAvatarBackground,
                   shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 2),
+                  border: Border.all(color: AppColors.white, width: 2),
                 ),
                 child: const Icon(Icons.person, color: AppColors.textDark, size: 26),
               ),
@@ -146,11 +146,11 @@ class EmployeeHomeDashboard extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
-              color: const Color(0xFF1B5A4F),
+              color: AppColors.scoreBackground,
               borderRadius: BorderRadius.circular(24),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF1B5A4F).withOpacity(0.18),
+                  color: AppColors.scoreBackground.withOpacity(0.18),
                   blurRadius: 10,
                   offset: const Offset(0, 6),
                 ),
@@ -168,7 +168,7 @@ class EmployeeHomeDashboard extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 17,
                           fontWeight: FontWeight.w700,
-                          color: Colors.white,
+                          color: AppColors.white,
                         ),
                       ),
                       const SizedBox(height: 14),
@@ -180,7 +180,7 @@ class EmployeeHomeDashboard extends StatelessWidget {
                             style: const TextStyle(
                               fontSize: 52,
                               fontWeight: FontWeight.w800,
-                              color: Colors.white,
+                              color: AppColors.white,
                             ),
                           ),
                           const SizedBox(width: 8),
@@ -190,7 +190,7 @@ class EmployeeHomeDashboard extends StatelessWidget {
                               '/ 100',
                               style: TextStyle(
                                 fontSize: 18,
-                                color: Colors.white70,
+                                color: AppColors.white70,
                               ),
                             ),
                           ),
@@ -208,7 +208,7 @@ class EmployeeHomeDashboard extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.12),
+                            color: AppColors.white.withOpacity(0.12),
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: const Text(
@@ -216,7 +216,7 @@ class EmployeeHomeDashboard extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w700,
-                              color: Colors.white,
+                              color: AppColors.white,
                               letterSpacing: 0.5,
                             ),
                           ),
@@ -227,7 +227,7 @@ class EmployeeHomeDashboard extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 15,
                             height: 1.4,
-                            color: Colors.white,
+                              color: AppColors.white,
                           ),
                         ),
                         const SizedBox(height: 16),
@@ -237,7 +237,7 @@ class EmployeeHomeDashboard extends StatelessWidget {
                               _levelForScore(greenScore),
                               style: const TextStyle(
                                 fontSize: 13,
-                                color: Colors.white70,
+                                color: AppColors.white70,
                               ),
                             ),
                             const Spacer(),
@@ -246,7 +246,7 @@ class EmployeeHomeDashboard extends StatelessWidget {
                               style: const TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w700,
-                                color: Colors.white,
+                                color: AppColors.white,
                               ),
                             ),
                           ],
@@ -258,7 +258,7 @@ class EmployeeHomeDashboard extends StatelessWidget {
                             height: 8,
                             child: LinearProgressIndicator(
                               value: (greenScore / 100).clamp(0.0, 1.0),
-                              backgroundColor: Colors.white.withOpacity(0.2),
+                              backgroundColor: AppColors.white.withOpacity(0.2),
                               valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
                             ),
                           ),
@@ -347,7 +347,7 @@ class EmployeeHomeDashboard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppColors.white,
               borderRadius: BorderRadius.circular(18),
             ),
             child: Column(
@@ -402,7 +402,7 @@ class EmployeeHomeDashboard extends StatelessWidget {
                     height: 8,
                     child: LinearProgressIndicator(
                       value: 0.72,
-                      backgroundColor: const Color(0xFFDBE4DF),
+                      backgroundColor: AppColors.progressBackground,
                       valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
                     ),
                   ),
@@ -435,7 +435,7 @@ class EmployeeHomeDashboard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppColors.white,
               borderRadius: BorderRadius.circular(18),
             ),
             child: const Column(
@@ -495,10 +495,10 @@ class _AnalyticsTile extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.white,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: const Color(0xFFEEF0F1),
+          color: AppColors.cardBorder,
           width: 1,
         ),
       ),
@@ -526,7 +526,7 @@ class _AnalyticsTile extends StatelessWidget {
                 width: 28,
                 height: 28,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFEAF7F1),
+                  color: AppColors.softGreen,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(icon, color: AppColors.primary, size: 16),
@@ -562,7 +562,7 @@ class _QuickActionTile extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFFF6F7F5),
+        color: AppColors.actionBackground,
         borderRadius: BorderRadius.circular(18),
       ),
       child: Row(
@@ -571,7 +571,7 @@ class _QuickActionTile extends StatelessWidget {
             width: 38,
             height: 38,
             decoration: BoxDecoration(
-              color: const Color(0xFFEAF7F1),
+              color: AppColors.softGreen,
               borderRadius: BorderRadius.circular(999),
             ),
             child: Icon(icon, color: AppColors.primary, size: 19),
@@ -615,7 +615,7 @@ class _ActivityRow extends StatelessWidget {
           width: 28,
           height: 28,
           decoration: BoxDecoration(
-            color: const Color(0xFFEAF7F1),
+            color: AppColors.softGreen,
             borderRadius: BorderRadius.circular(999),
           ),
           child: const Icon(Icons.check_circle_outline, size: 16, color: AppColors.primary),
@@ -648,7 +648,7 @@ class _ActivityRow extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFEAF7F1),
+                        color: AppColors.softGreen,
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(

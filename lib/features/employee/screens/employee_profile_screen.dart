@@ -81,7 +81,7 @@ class EmployeeProfileContent extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.w800,
-                    color: Colors.white,
+                    color: AppColors.white,
                   ),
                 ),
               ),
@@ -118,7 +118,7 @@ class EmployeeProfileContent extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFF1FAE72),
+      color: AppColors.scoreCard,
                 borderRadius: BorderRadius.circular(18),
               ),
               child: Row(
@@ -129,14 +129,14 @@ class EmployeeProfileContent extends StatelessWidget {
                       children: [
                         Row(
                           children: [
-                            const Icon(Icons.eco_rounded, color: Colors.white, size: 18),
+      const Icon(Icons.eco_rounded, color: AppColors.white, size: 18),
                             const SizedBox(width: 8),
                             const Text(
                               'Green Score',
                               style: TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w700,
-                                color: Colors.white,
+                                color: AppColors.white,
                               ),
                             ),
                             const Spacer(),
@@ -145,7 +145,7 @@ class EmployeeProfileContent extends StatelessWidget {
                               style: const TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w700,
-                                color: Colors.white,
+                                color: AppColors.white,
                               ),
                             ),
                           ],
@@ -159,7 +159,7 @@ class EmployeeProfileContent extends StatelessWidget {
                               style: const TextStyle(
                                 fontSize: 42,
                                 fontWeight: FontWeight.w800,
-                                color: Colors.white,
+                                color: AppColors.white,
                               ),
                             ),
                             const SizedBox(width: 8),
@@ -170,7 +170,7 @@ class EmployeeProfileContent extends StatelessWidget {
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600,
-                                  color: Colors.white70,
+                                  color: AppColors.white70,
                                 ),
                               ),
                             ),
@@ -191,8 +191,8 @@ class EmployeeProfileContent extends StatelessWidget {
                           height: 52,
                           child: CircularProgressIndicator(
                             value: (greenScore / 1000).clamp(0.0, 1.0),
-                            backgroundColor: Colors.white.withOpacity(0.25),
-                            valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+                            backgroundColor: AppColors.white.withOpacity(0.25),
+      valueColor: const AlwaysStoppedAnimation<Color>(AppColors.white),
                             strokeWidth: 6,
                           ),
                         ),
@@ -201,7 +201,7 @@ class EmployeeProfileContent extends StatelessWidget {
                           style: const TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w800,
-                            color: Colors.white,
+                            color: AppColors.white,
                           ),
                         ),
                       ],
@@ -246,7 +246,7 @@ class EmployeeProfileContent extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.white,
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Row(
@@ -254,19 +254,19 @@ class EmployeeProfileContent extends StatelessWidget {
                   children: const [
                     Row(
                       children: [
-                        Icon(Icons.logout_rounded, color: Color(0xFFE15B5B), size: 20),
+      Icon(Icons.logout_rounded, color: AppColors.logout, size: 20),
                         SizedBox(width: 10),
                         Text(
                           'Logout',
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
-                            color: Color(0xFFE15B5B),
+                            color: AppColors.logout,
                           ),
                         ),
                       ],
                     ),
-                    Icon(Icons.chevron_right_rounded, color: Color(0xFFE15B5B), size: 22),
+                    Icon(Icons.chevron_right_rounded, color: AppColors.logout, size: 22),
                   ],
                 ),
               ),
@@ -318,7 +318,7 @@ class _StatCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.white,
         borderRadius: BorderRadius.circular(14),
       ),
       child: Column(

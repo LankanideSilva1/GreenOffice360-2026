@@ -48,14 +48,14 @@ class _EmployeeMainScreenState extends State<EmployeeMainScreen> {
         height: 88,
         padding: const EdgeInsets.only(top: 10, bottom: 12),
         decoration: const BoxDecoration(
-          color: Colors.white,
+          color: AppColors.white,
           borderRadius: BorderRadius.only(
             topLeft: Radius.circular(24),
             topRight: Radius.circular(24),
           ),
           boxShadow: [
             BoxShadow(
-              color: Color(0x14000000),
+      color: AppColors.navigationShadow,
               blurRadius: 10,
               offset: Offset(0, -2),
             ),

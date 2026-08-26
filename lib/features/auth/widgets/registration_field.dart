@@ -39,10 +39,10 @@ class RegistrationField extends StatelessWidget {
         Container(
           height: 52,
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: AppColors.white,
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
-              color: const Color(0xFFD8D1CE),
+              color: AppColors.fieldBorder,
             ),
           ),
           child: Row(
@@ -51,7 +51,7 @@ class RegistrationField extends StatelessWidget {
                 const SizedBox(width: 14),
                 Icon(
                   icon,
-                  color: const Color(0xFF9AA5AA),
+                  color: AppColors.fieldIcon,
                   size: 20,
                 ),
                 const SizedBox(width: 10),
@@ -71,7 +71,7 @@ class RegistrationField extends StatelessWidget {
                   decoration: InputDecoration(
                     hintText: hintText,
                     hintStyle: const TextStyle(
-                      color: Color(0xFFA3A9AE),
+                      color: AppColors.fieldHint,
                       fontWeight: FontWeight.w500,
                     ),
                     border: InputBorder.none,

@@ -23,10 +23,10 @@ class RegistrationHeader extends StatelessWidget {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: const Color(0xFFE9EEEF),
+                color: AppColors.headerButtonBackground,
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: const Color(0xFFCAD4D7),
+                  color: AppColors.headerButtonBorder,
                 ),
               ),
               child: const Icon(

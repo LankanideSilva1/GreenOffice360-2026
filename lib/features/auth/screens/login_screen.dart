@@ -116,7 +116,7 @@ class _LoginContainer extends StatelessWidget {
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(26),
         border: Border.all(
-          color: const Color(0xFF6EC4EA),
+          color: AppColors.loginBorder,
           width: 2,
         ),
       ),
@@ -385,7 +385,7 @@ class _LoginForm extends StatelessWidget {
 
         Container(
           height: 1,
-          color: const Color(0xFFD8D0CD),
+          color: AppColors.loginDivider,
         ),
       ],
     );

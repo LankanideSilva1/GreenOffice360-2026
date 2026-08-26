@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/constants/app_colors.dart';
+
 class RegistrationProgress extends StatelessWidget {
   const RegistrationProgress({super.key});
 
@@ -10,10 +12,10 @@ class RegistrationProgress extends StatelessWidget {
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            Color(0xFFFFF4F7),
-            Color(0xFFF8E6EE),
-            Color(0xFFFFD9E5),
-            Color(0xFFFFD3E5),
+            AppColors.progressPinkStart,
+            AppColors.progressPinkLight,
+            AppColors.progressPink,
+            AppColors.progressPinkEnd,
           ],
           stops: [0.0, 0.25, 0.6, 1.0],
         ),
@@ -36,8 +38,8 @@ class RegistrationProgress extends StatelessWidget {
                   right: index == count - 1 ? 0 : stripeGap,
                 ),
                 color: index.isEven
-                    ? const Color(0xFFF6D7E4)
-                    : Colors.transparent,
+                    ? AppColors.progressStripe
+                    : AppColors.transparent,
               ),
             ),
           );

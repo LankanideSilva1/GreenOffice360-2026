@@ -43,12 +43,12 @@ class RegistrationPasswordField extends StatelessWidget {
           height: 52,
           padding: const EdgeInsets.symmetric(horizontal: 12),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: AppColors.white,
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
               color: hasError
-                  ? const Color(0xFFE15E5E)
-                  : const Color(0xFFD8D1CE),
+                  ? AppColors.error
+                  : AppColors.fieldBorder,
               width: hasError ? 1.8 : 1,
             ),
           ),
@@ -56,7 +56,7 @@ class RegistrationPasswordField extends StatelessWidget {
             children: [
               const Icon(
                 Icons.lock_outline,
-                color: Color(0xFF9AA5AA),
+                color: AppColors.fieldIcon,
                 size: 20,
               ),
               const SizedBox(width: 10),
@@ -72,7 +72,7 @@ class RegistrationPasswordField extends StatelessWidget {
                   decoration: InputDecoration(
                     hintText: hintText,
                     hintStyle: const TextStyle(
-                      color: Color(0xFFA3A9AE),
+                      color: AppColors.fieldHint,
                       fontWeight: FontWeight.w500,
                     ),
                     border: InputBorder.none,
@@ -91,8 +91,8 @@ class RegistrationPasswordField extends StatelessWidget {
                       ? Icons.visibility
                       : Icons.visibility_off,
                   color: hasError
-                      ? const Color(0xFFE15E5E)
-                      : const Color(0xFF7B8388),
+                      ? AppColors.error
+                      : AppColors.visibilityIcon,
                   size: 18,
                 ),
               ),
@@ -106,14 +106,14 @@ class RegistrationPasswordField extends StatelessWidget {
             children: [
               const Icon(
                 Icons.error_outline,
-                color: Color(0xFFE15E5E),
+                color: AppColors.error,
                 size: 16,
               ),
               const SizedBox(width: 8),
               Text(
                 errorText ?? 'Invalid password',
                 style: const TextStyle(
-                  color: Color(0xFFE15E5E),
+                  color: AppColors.error,
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                 ),
