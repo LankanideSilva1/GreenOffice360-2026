@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1003064338008",
+    "project_id": "greenoffice360-2026",
+    "storage_bucket": "greenoffice360-2026.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1003064338008:android:1d518826b1daf2cf33cc2d",
+        "android_client_info": {
+          "package_name": "com.example.greenoffice360"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDczxPAOoxOLqGCDORZTsG8QzfEfKJrQNQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
