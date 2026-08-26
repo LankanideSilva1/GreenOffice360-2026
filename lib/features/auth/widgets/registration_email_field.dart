@@ -31,11 +31,11 @@ class RegistrationEmailField extends StatelessWidget {
         Container(
           height: 52,
           decoration: BoxDecoration(
-            color: const Color(0xFFE6F7EA),
+            color: Colors.white,
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
-              color: const Color(0xFF48B86F),
-              width: 1.5,
+              color: Color(0xFF9AA5AA),
+              // width: 1.5,
             ),
           ),
           child: Row(
