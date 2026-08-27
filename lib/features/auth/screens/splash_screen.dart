@@ -5,7 +5,6 @@ import '../../../core/constants/app_colors.dart';
 import '../../../widgets/app_button.dart';
 import '../widgets/carbon_badge.dart';
 import '../widgets/green_logo.dart';
-import '../../auth/screens/registration_screen.dart';
 
 class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});

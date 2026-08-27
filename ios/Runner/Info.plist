@@ -24,6 +24,12 @@
 	<string>????</string>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>GreenOffice 360 uses your location to identify where an issue was reported.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>GreenOffice 360 uses the camera to attach a photo to your issue report.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>GreenOffice 360 uses your photo library to attach a photo to your issue report.</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>UIApplicationSceneManifest</key>

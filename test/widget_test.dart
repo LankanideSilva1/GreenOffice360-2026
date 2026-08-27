@@ -1,13 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:greenoffice360/main.dart';
+import 'package:greenoffice360/features/issues/screens/issue_select_category.dart';
 
 void main() {
-  testWidgets('shows the GreenOffice splash screen', (tester) async {
-    await tester.pumpWidget(const GreenOfficeApp());
+  testWidgets('shows the issue category picker', (tester) async {
+    await tester.pumpWidget(const MaterialApp(home: IssueSelectCategoryScreen()));
 
-    expect(find.textContaining('Want to check out this file?'), findsOneWidget);
-    expect(find.text('Continue with Google'), findsOneWidget);
-    expect(find.text('Continue with email'), findsOneWidget);
+    expect(find.text('Select Category'), findsOneWidget);
+    expect(find.text('Water'), findsOneWidget);
+    expect(find.text('Next Step'), findsOneWidget);
   });
 }

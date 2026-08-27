@@ -5,6 +5,12 @@ class AppRoutes {
 
   static const registration = '/registration';
 
+  static const issueCategory = '/issue/category';
+
+  static const issueDetails = '/issue/details';
+
+  static const issueReview = '/issue/review';
+
   static const employeeDashboard =
       '/employee/dashboard';
 

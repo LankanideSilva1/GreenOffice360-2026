@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/constants/app_colors.dart';
+import '../../../core/routes/app_routes.dart';
 import '../../auth/providers/auth_provider.dart';
 import 'employee_main_screen.dart';
 import 'employee_profile_screen.dart';
@@ -327,11 +328,15 @@ class EmployeeHomeDashboard extends StatelessWidget {
             crossAxisSpacing: 12,
             mainAxisSpacing: 12,
             childAspectRatio: isPortrait ? 3.2 : 2.15,
-            children: const [
-              _QuickActionTile(label: 'Report Issue', icon: Icons.info_outline),
-              _QuickActionTile(label: 'My Reports', icon: Icons.insert_drive_file_outlined),
-              _QuickActionTile(label: 'Challenges', icon: Icons.flag_outlined),
-              _QuickActionTile(label: 'Rewards', icon: Icons.card_giftcard_outlined),
+            children: [
+              _QuickActionTile(
+                label: 'Report Issue',
+                icon: Icons.info_outline,
+                onTap: () => Navigator.pushNamed(context, AppRoutes.issueCategory),
+              ),
+              const _QuickActionTile(label: 'My Reports', icon: Icons.insert_drive_file_outlined),
+              const _QuickActionTile(label: 'Challenges', icon: Icons.flag_outlined),
+              const _QuickActionTile(label: 'Rewards', icon: Icons.card_giftcard_outlined),
             ],
           ),
           const SizedBox(height: 28),
@@ -552,44 +557,50 @@ class _QuickActionTile extends StatelessWidget {
   const _QuickActionTile({
     required this.label,
     required this.icon,
+    this.onTap,
   });
 
   final String label;
   final IconData icon;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
-        color: AppColors.actionBackground,
+    return Material(
+      color: AppColors.actionBackground,
+      borderRadius: BorderRadius.circular(18),
+      child: InkWell(
+        onTap: onTap,
         borderRadius: BorderRadius.circular(18),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(
-              color: AppColors.softGreen,
-              borderRadius: BorderRadius.circular(999),
-            ),
-            child: Icon(icon, color: AppColors.primary, size: 19),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textDark,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          child: Row(
+            children: [
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: AppColors.softGreen,
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Icon(icon, color: AppColors.primary, size: 19),
               ),
-            ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textDark,
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
