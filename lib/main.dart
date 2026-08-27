@@ -14,7 +14,14 @@ import 'package:greenoffice360/features/issues/screens/issue_success_screen.dart
 import 'package:greenoffice360/features/issues/controllers/issue_controller.dart';
 import 'package:greenoffice360/features/issues/providers/issue_provider.dart';
 import 'package:greenoffice360/features/manager/screens/manager_dashboard_screen.dart';
+import 'package:greenoffice360/repositories/offline/offline_issue_repository.dart';
+import 'package:greenoffice360/repositories/offline/sync_queue_repository.dart';
 import 'package:greenoffice360/services/cloudinary_service.dart';
+import 'package:greenoffice360/services/connectivity_service.dart';
+import 'package:greenoffice360/services/local_database_service.dart';
+import 'package:greenoffice360/services/sync_service.dart';
+import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:greenoffice360/core/theme/app_theme.dart';
 import 'package:greenoffice360/features/auth/controllers/auth_controller.dart';
@@ -27,6 +34,19 @@ Future<void> main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+   final localDatabaseService = LocalDatabaseService();
+  await localDatabaseService.initialize();
+  final connectivityService = ConnectivityService();
+  final offlineIssueRepository = OfflineIssueRepository();
+  final syncQueueRepository = SyncQueueRepository();
+  final syncService = SyncService(
+    connectivityService: connectivityService,
+    syncQueueRepository: syncQueueRepository,
+    offlineIssueRepository: offlineIssueRepository,
+    cloudinaryService: CloudinaryService(),
+  );
+  // Start automatic synchronization
+  syncService.startAutoSync();
   final authRepository = AuthRepository();
   final authController = AuthController(
     repository: authRepository
@@ -47,6 +67,7 @@ Future<void> main() async {
             controller: IssueController(
               repository: IssueRepository(
                 cloudinaryService: context.read<CloudinaryService>(),
+                syncQueueRepository: syncQueueRepository,
               ),
             ),
           ),

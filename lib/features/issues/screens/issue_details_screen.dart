@@ -1,5 +1,7 @@
 import 'dart:io';
+import 'dart:async';
 
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
@@ -26,6 +28,8 @@ class _IssueDetailsScreenState extends State<IssueDetailsScreen> {
   final TextEditingController _locationController = TextEditingController();
   String _selectedPriority = 'High';
   File? _selectedPhoto;
+  bool _isOffline = false;
+  StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
 
   final List<String> _priorities = ['Low', 'Medium', 'High', 'Critical'];
 
@@ -55,6 +59,7 @@ class _IssueDetailsScreenState extends State<IssueDetailsScreen> {
 
   @override
   void dispose() {
+    _connectivitySubscription?.cancel();
     _titleController.dispose();
     _descriptionController.dispose();
     _locationController.dispose();
@@ -65,6 +70,25 @@ class _IssueDetailsScreenState extends State<IssueDetailsScreen> {
   void initState() {
     super.initState();
     _restoreLostPhoto();
+    _checkConnectivity();
+    _connectivitySubscription = Connectivity().onConnectivityChanged.listen(
+      _handleConnectivityChanged,
+    );
+  }
+
+  Future<void> _checkConnectivity() async {
+    final results = await Connectivity().checkConnectivity();
+    _handleConnectivityChanged(results);
+  }
+
+  void _handleConnectivityChanged(List<ConnectivityResult> results) {
+    if (!mounted) return;
+
+    final isOffline = results.isEmpty ||
+        results.every((result) => result == ConnectivityResult.none);
+    if (_isOffline != isOffline) {
+      setState(() => _isOffline = isOffline);
+    }
   }
 
   Future<void> _restoreLostPhoto() async {
@@ -153,6 +177,10 @@ class _IssueDetailsScreenState extends State<IssueDetailsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  if (_isOffline) ...[
+                    const _OfflineBanner(),
+                    const SizedBox(height: 12),
+                  ],
                   Row(
                     children: [
                       IconButton(
@@ -573,6 +601,65 @@ class _IssueDetailsScreenState extends State<IssueDetailsScreen> {
             vertical: 14,
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _OfflineBanner extends StatelessWidget {
+  const _OfflineBanner();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF4CC),
+        border: Border.all(color: const Color(0xFFFFB91F)),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 30,
+            height: 30,
+            decoration: const BoxDecoration(
+              color: Color(0xFFFFF9E7),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.wifi_off_rounded,
+              size: 18,
+              color: Color(0xFF9B5C19),
+            ),
+          ),
+          const SizedBox(width: 10),
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'No Internet Connection',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF99561A),
+                  ),
+                ),
+                SizedBox(height: 2),
+                Text(
+                  'Your data will be synchronized when connection returns.',
+                  style: TextStyle(
+                    fontSize: 12,
+                    height: 1.25,
+                    color: Color(0xFF9B6A2C),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

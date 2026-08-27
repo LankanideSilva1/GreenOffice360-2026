@@ -5,3 +5,10 @@ enum IssueStatus {
   resolved,
   rejected,
 }
+
+enum SyncStatus {
+  pending,
+  syncing,
+  synced,
+  failed,
+}
