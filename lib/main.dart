@@ -10,6 +10,7 @@ import 'package:greenoffice360/features/employee/screens/employee_profile_screen
 import 'package:greenoffice360/features/issues/screens/issue_details_screen.dart';
 import 'package:greenoffice360/features/issues/screens/issue_review_screen.dart';
 import 'package:greenoffice360/features/issues/screens/issue_select_category.dart';
+import 'package:greenoffice360/features/issues/screens/issue_success_screen.dart';
 import 'package:greenoffice360/features/issues/controllers/issue_controller.dart';
 import 'package:greenoffice360/features/issues/providers/issue_provider.dart';
 import 'package:greenoffice360/features/manager/screens/manager_dashboard_screen.dart';
@@ -89,6 +90,11 @@ class GreenOfficeApp extends StatelessWidget {
             location: args['location'] ?? 'Office Block A, Floor 4',
             description: args['description'] ?? 'No description provided.',
           );
+        },
+
+        AppRoutes.issueSuccess: (context) {
+          final args = ModalRoute.of(context)?.settings.arguments;
+          return IssueSuccessScreen(issueId: args is String ? args : null);
         },
 
         AppRoutes.employeeDashboard:

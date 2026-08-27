@@ -119,7 +119,11 @@ class _IssueDetailsScreenState extends State<IssueDetailsScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Issue report saved successfully.')),
       );
-      Navigator.pushReplacementNamed(context, AppRoutes.employeeDashboard);
+      Navigator.pushReplacementNamed(
+        context,
+        AppRoutes.issueSuccess,
+        arguments: issueProvider.createdIssue?.id,
+      );
     } else {
       _showError(issueProvider.errorMessage ?? 'Unable to save issue report.');
     }

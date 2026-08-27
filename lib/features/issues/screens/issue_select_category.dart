@@ -42,27 +42,39 @@ class _IssueSelectCategoryScreenState extends State<IssueSelectCategoryScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 6,
+                        Row(
+                          children: [
+                            IconButton(
+                              onPressed: () => Navigator.pushNamedAndRemoveUntil(
+                                context,
+                                AppRoutes.employeeDashboard,
+                                (route) => false,
+                              ),
+                              icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                              color: AppColors.textDark,
+                              splashRadius: 20,
                             ),
-                            decoration: BoxDecoration(
-                              color: AppColors.background,
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: const Text(
-                              'STEP 1 OF 5',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: 1.1,
-                                color: AppColors.primary,
+                            const Spacer(),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppColors.background,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: const Text(
+                                'STEP 1 OF 5',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 1.1,
+                                  color: AppColors.primary,
+                                ),
                               ),
                             ),
-                          ),
+                          ],
                         ),
                         const SizedBox(height: 12),
                         const Text(

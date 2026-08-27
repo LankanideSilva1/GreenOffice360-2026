@@ -11,15 +11,13 @@ class AppRoutes {
 
   static const issueReview = '/issue/review';
 
-  static const employeeDashboard =
-      '/employee/dashboard';
+  static const issueSuccess = '/issue/success';
 
-  static const employeeProfile =
-      '/employee/profile';
+  static const employeeDashboard = '/employee/dashboard';
 
-  static const managerDashboard =
-      '/manager/dashboard';
+  static const employeeProfile = '/employee/profile';
 
-  static const adminDashboard =
-      '/admin/dashboard';
+  static const managerDashboard = '/manager/dashboard';
+
+  // static const adminDashboard = '/admin/dashboard';
 }
