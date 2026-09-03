@@ -13,7 +13,10 @@ import 'package:greenoffice360/features/issues/screens/issue_select_category.dar
 import 'package:greenoffice360/features/issues/screens/issue_success_screen.dart';
 import 'package:greenoffice360/features/issues/controllers/issue_controller.dart';
 import 'package:greenoffice360/features/issues/providers/issue_provider.dart';
+import 'package:greenoffice360/features/manager/screens/manager_assign_issue.dart';
 import 'package:greenoffice360/features/manager/screens/manager_dashboard_screen.dart';
+import 'package:greenoffice360/features/manager/screens/manager_issue_detail.dart';
+import 'package:greenoffice360/models/issue_model.dart';
 import 'package:greenoffice360/repositories/offline/offline_issue_repository.dart';
 import 'package:greenoffice360/repositories/offline/sync_queue_repository.dart';
 import 'package:greenoffice360/services/cloudinary_service.dart';
@@ -126,6 +129,24 @@ class GreenOfficeApp extends StatelessWidget {
 
         AppRoutes.managerDashboard:
             (_) => const ManagerDashboardScreen(),
+
+        AppRoutes.managerIssueDetail: (context) {
+          final args = ModalRoute.of(context)?.settings.arguments;
+          final issue = args is IssueModel ? args : null;
+          if (issue == null) {
+            return const ManagerDashboardScreen();
+          }
+          return ManagerIssueDetailScreen(issue: issue);
+        },
+
+        AppRoutes.managerAssignIssue: (context) {
+          final args = ModalRoute.of(context)?.settings.arguments;
+          final issue = args is IssueModel ? args : null;
+          if (issue == null) {
+            return const ManagerDashboardScreen();
+          }
+          return ManagerAssignIssueScreen(issue: issue);
+        },
 
         // AppRoutes.adminDashboard:
         //     (_) => const AdminDashboardScreen(),

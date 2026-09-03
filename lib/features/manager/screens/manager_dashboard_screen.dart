@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../employee/screens/employee_profile_screen.dart';
+import 'manager_issue_list.dart';
 import 'manager_main_screen.dart';
 
 class ManagerDashboardScreen extends StatelessWidget {
@@ -17,6 +18,7 @@ class ManagerDashboardScreen extends StatelessWidget {
       dashboardTabContent: ManagerDashboardContent(
         managerName: user?.name ?? 'Manager',
       ),
+      issuesTabContent: const ManagerIssueListScreen(),
       profileTabContent: const EmployeeProfileScreen(),
     );
   }

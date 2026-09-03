@@ -9,17 +9,17 @@ class OfflineIssueRepository {
   /// Initialize Hive and open the offline issues box.
   Future<void> init() async {
     if (!Hive.isBoxOpen(_boxName)) {
-      await Hive.openBox<Map>(_boxName);
+      await Hive.openBox(_boxName);
     }
   }
 
   /// Get the Hive box.
-  Future<Box<Map>> _getBox() async {
+  Future<Box> _getBox() async {
     if (!Hive.isBoxOpen(_boxName)) {
-      await Hive.openBox<Map>(_boxName);
+      await Hive.openBox(_boxName);
     }
 
-    return Hive.box<Map>(_boxName);
+    return Hive.box(_boxName);
   }
 
   /// Save an issue locally.
@@ -35,37 +35,52 @@ class OfflineIssueRepository {
     await box.put(issue.id, issueData);
   }
 
+  Future<void> cacheIssue(IssueModel issue) async {
+    final box = await _getBox();
+    final existing = box.get(issue.id) as Map?;
+    final issueData = issue.toMap()
+      ..['id'] = issue.id
+      ..['syncStatus'] = existing?['syncStatus'] ?? 'synced'
+      ..['localImagePath'] = existing?['localImagePath'];
+    await box.put(issue.id, issueData);
+  }
+
+  Future<void> updateIssueFields(
+    String issueId,
+    Map<String, dynamic> fields,
+  ) async {
+    final box = await _getBox();
+    final issue = box.get(issueId) as Map?;
+
+    if (issue == null) return;
+
+    final updatedIssue = Map<String, dynamic>.from(issue)..addAll(fields);
+    updatedIssue['syncStatus'] = 'pending';
+    await box.put(issueId, updatedIssue);
+  }
+
   /// Get all offline issues.
   Future<List<Map<String, dynamic>>> getAllIssues() async {
     final box = await _getBox();
 
-    return box.values
-        .map(
-          (issue) => Map<String, dynamic>.from(issue),
-        )
-        .toList();
+    return box.values.map((issue) => Map<String, dynamic>.from(issue)).toList();
   }
 
   /// Get issues waiting to be synchronized.
   Future<List<Map<String, dynamic>>> getPendingIssues() async {
     final issues = await getAllIssues();
 
-    return issues
-        .where((issue) => issue['syncStatus'] == 'pending')
-        .toList();
+    return issues.where((issue) => issue['syncStatus'] == 'pending').toList();
   }
 
   /// Change the synchronization status.
-  Future<void> updateSyncStatus(
-    String issueId,
-    String status,
-  ) async {
+  Future<void> updateSyncStatus(String issueId, String status) async {
     final box = await _getBox();
 
     final issue = box.get(issueId);
 
     if (issue != null) {
-      final updatedIssue = Map<String, dynamic>.from(issue);
+      final updatedIssue = Map<String, dynamic>.from(issue as Map);
 
       updatedIssue['syncStatus'] = status;
 

@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class IssueModel {
   final String? id;
   final String userId;
@@ -9,6 +11,10 @@ class IssueModel {
   final double latitude;
   final double longitude;
   final String status;
+  final String? address;
+  final String? assigneeName;
+  final DateTime? deadline;
+  final String? specialInstructions;
   final DateTime createdAt;
 
   IssueModel({
@@ -22,6 +28,10 @@ class IssueModel {
     required this.latitude,
     required this.longitude,
     required this.status,
+    this.address,
+    this.assigneeName,
+    this.deadline,
+    this.specialInstructions,
     required this.createdAt,
   });
 
@@ -36,14 +46,15 @@ class IssueModel {
       'latitude': latitude,
       'longitude': longitude,
       'status': status,
+      'address': address,
+      'assigneeName': assigneeName,
+      'deadline': deadline,
+      'specialInstructions': specialInstructions,
       'createdAt': createdAt,
     };
   }
 
-  factory IssueModel.fromMap(
-    Map<String, dynamic> map,
-    String documentId,
-  ) {
+  factory IssueModel.fromMap(Map<String, dynamic> map, String documentId) {
     return IssueModel(
       id: documentId,
       userId: map['userId'] ?? '',
@@ -55,7 +66,23 @@ class IssueModel {
       latitude: (map['latitude'] ?? 0).toDouble(),
       longitude: (map['longitude'] ?? 0).toDouble(),
       status: map['status'] ?? 'Pending',
-      createdAt: map['createdAt']?.toDate() ?? DateTime.now(),
+      address: map['address'],
+      assigneeName: map['assigneeName'],
+      deadline: map['deadline'] is Timestamp
+          ? (map['deadline'] as Timestamp).toDate()
+          : map['deadline'] is DateTime
+          ? map['deadline'] as DateTime
+          : map['deadline'] is String
+          ? DateTime.tryParse(map['deadline'] as String)
+          : null,
+      specialInstructions: map['specialInstructions'] ?? map['instructions'],
+      createdAt: map['createdAt'] is Timestamp
+          ? (map['createdAt'] as Timestamp).toDate()
+          : map['createdAt'] is DateTime
+          ? map['createdAt'] as DateTime
+          : map['createdAt'] is String
+          ? DateTime.tryParse(map['createdAt'] as String) ?? DateTime.now()
+          : DateTime.now(),
     );
   }
 }

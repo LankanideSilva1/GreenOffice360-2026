@@ -21,8 +21,9 @@ class SyncService {
     required this.syncQueueRepository,
     OfflineIssueRepository? offlineIssueRepository,
     CloudinaryService? cloudinaryService,
-  })  : offlineIssueRepository = offlineIssueRepository ?? OfflineIssueRepository(),
-        cloudinaryService = cloudinaryService ?? CloudinaryService();
+  }) : offlineIssueRepository =
+           offlineIssueRepository ?? OfflineIssueRepository(),
+       cloudinaryService = cloudinaryService ?? CloudinaryService();
 
   Future<void> synchronize() async {
     if (_isSyncing) return;
@@ -40,9 +41,7 @@ class SyncService {
         try {
           await _processOperation(operation);
 
-          await syncQueueRepository.removeOperation(
-            operation.id,
-          );
+          await syncQueueRepository.removeOperation(operation.id);
         } catch (error) {
           // Keep the operation in the queue.
           // It will retry later.
@@ -55,9 +54,7 @@ class SyncService {
     }
   }
 
-  Future<void> _processOperation(
-    SyncOperationModel operation,
-  ) async {
+  Future<void> _processOperation(SyncOperationModel operation) async {
     switch (operation.feature) {
       case 'issue':
         await _syncIssue(operation);
@@ -72,29 +69,25 @@ class SyncService {
         break;
 
       default:
-        throw FormatException(
-          'Unsupported sync feature: ${operation.feature}',
-        );
+        throw FormatException('Unsupported sync feature: ${operation.feature}');
     }
   }
 
-  Future<void> _syncIssue(
-    SyncOperationModel operation,
-  ) async {
+  Future<void> _syncIssue(SyncOperationModel operation) async {
     final userId = operation.data['userId'] as String?;
-    if (userId == null || userId.isEmpty) {
-      throw const FormatException('Issue sync data is missing userId.');
-    }
-
     final issueId = operation.data['id'] as String?;
-    final issueData = Map<String, dynamic>.from(operation.data)
-      ..remove('id');
+    final issueData = Map<String, dynamic>.from(operation.data)..remove('id');
     final localImagePath = issueData.remove('localImagePath') as String?;
 
     if (localImagePath != null && localImagePath.isNotEmpty) {
+      if (userId == null || userId.isEmpty) {
+        throw const FormatException('Issue sync data is missing userId.');
+      }
+
       final image = File(localImagePath);
       if (await image.exists()) {
-        final documentId = issueId ?? FirebaseFirestore.instance.collection('issues').doc().id;
+        final documentId =
+            issueId ?? FirebaseFirestore.instance.collection('issues').doc().id;
         issueData['imageUrl'] = await cloudinaryService.uploadIssueImage(
           image: image,
           issueId: documentId,
@@ -112,8 +105,13 @@ class SyncService {
           .collection('issues')
           .doc(issueId)
           .set(issueData, SetOptions(merge: true));
-        await _removeSyncedOfflineIssue(issueId);
+      await offlineIssueRepository.markAsSynced(issueId);
+      await _removeSyncedOfflineIssue(issueId);
       return;
+    }
+
+    if (userId == null || userId.isEmpty) {
+      throw const FormatException('Issue sync data is missing userId.');
     }
 
     final document = issueId == null || issueId.isEmpty
@@ -131,9 +129,7 @@ class SyncService {
     await offlineIssueRepository.deleteIssue(issueId);
   }
 
-  Future<void> _syncProfile(
-    SyncOperationModel operation,
-  ) async {
+  Future<void> _syncProfile(SyncOperationModel operation) async {
     final userId = operation.data['userId'] as String?;
     if (userId == null || userId.isEmpty) {
       throw const FormatException('Profile sync data is missing userId.');
@@ -148,20 +144,16 @@ class SyncService {
         .set(profileData, SetOptions(merge: true));
   }
 
-  Future<void> _syncSettings(
-    SyncOperationModel operation,
-  ) async {
+  Future<void> _syncSettings(SyncOperationModel operation) async {
     // Firebase settings synchronization
   }
 
   void startAutoSync() {
-    connectivityService.onConnectivityChanged.listen(
-      (isConnected) {
-        if (isConnected) {
-          synchronize();
-        }
-      },
-    );
+    connectivityService.onConnectivityChanged.listen((isConnected) {
+      if (isConnected) {
+        synchronize();
+      }
+    });
     synchronize();
   }
 }
