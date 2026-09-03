@@ -224,8 +224,6 @@ class _ManagerAssignIssueScreenState extends State<ManagerAssignIssueScreen> {
   @override
   Widget build(BuildContext context) {
     final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
-    final employeeName = _selectedEmployee?.name ?? 'Select an employee';
-    final employeeDepartment = _selectedEmployee?.department ?? 'Maintenance Department';
 
     return Scaffold(
       backgroundColor: AppColors.background,
