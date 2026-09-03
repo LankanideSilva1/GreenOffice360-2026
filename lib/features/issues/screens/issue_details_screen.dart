@@ -200,7 +200,7 @@ class _IssueDetailsScreenState extends State<IssueDetailsScreen> {
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: const Text(
-                          'Step 2 of 5',
+                          'Step 2 of 2',
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w700,

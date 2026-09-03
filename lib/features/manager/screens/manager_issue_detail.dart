@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
+import 'package:greenoffice360/features/auth/providers/auth_provider.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/routes/app_routes.dart';
@@ -8,15 +9,13 @@ import '../../../models/issue_model.dart';
 import '../../../models/user_model.dart';
 
 class ManagerIssueDetailScreen extends StatefulWidget {
-  const ManagerIssueDetailScreen({
-    super.key,
-    required this.issue,
-  });
+  const ManagerIssueDetailScreen({super.key, required this.issue});
 
   final IssueModel issue;
 
   @override
-  State<ManagerIssueDetailScreen> createState() => _ManagerIssueDetailScreenState();
+  State<ManagerIssueDetailScreen> createState() =>
+      _ManagerIssueDetailScreenState();
 }
 
 class _ManagerIssueDetailScreenState extends State<ManagerIssueDetailScreen> {
@@ -98,7 +97,10 @@ class _ManagerIssueDetailScreenState extends State<ManagerIssueDetailScreen> {
                 const SizedBox(height: 12),
                 ...statuses.map(
                   (status) => ListTile(
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 2,
+                    ),
                     title: Text(
                       status,
                       style: const TextStyle(
@@ -108,7 +110,10 @@ class _ManagerIssueDetailScreenState extends State<ManagerIssueDetailScreen> {
                       ),
                     ),
                     trailing: currentIssue.status == status
-                        ? const Icon(Icons.check_circle, color: Color(0xFF2FBA59))
+                        ? const Icon(
+                            Icons.check_circle,
+                            color: Color(0xFF2FBA59),
+                          )
                         : null,
                     onTap: () => Navigator.of(context).pop(status),
                   ),
@@ -126,55 +131,53 @@ class _ManagerIssueDetailScreenState extends State<ManagerIssueDetailScreen> {
   }
 
   Future<String> _loadAddress() async {
-  if ((widget.issue.address ?? '').trim().isNotEmpty) {
-    return widget.issue.address!.trim();
-  }
+    if ((widget.issue.address ?? '').trim().isNotEmpty) {
+      return widget.issue.address!.trim();
+    }
 
-  final latitude = widget.issue.latitude;
-  final longitude = widget.issue.longitude;
+    final latitude = widget.issue.latitude;
+    final longitude = widget.issue.longitude;
 
-  if (latitude == 0 && longitude == 0) {
-    return 'Location not available';
-  }
-
-  try {
-    // Create Geocoding instance
-    final geocoding = Geocoding();
-
-    // Convert latitude and longitude to address
-    final List<Placemark> placemarks =
-        await geocoding.placemarkFromCoordinates(
-      latitude,
-      longitude,
-    );
-
-    if (placemarks.isEmpty) {
+    if (latitude == 0 && longitude == 0) {
       return 'Location not available';
     }
 
-    final place = placemarks.first;
+    try {
+      // Create Geocoding instance
+      final geocoding = Geocoding();
 
-    final parts = [
-      place.street,
-      place.subLocality,
-      place.locality,
-      place.administrativeArea,
-      place.country,
-    ]
-        .where((value) => value != null && value.trim().isNotEmpty)
-        .map((value) => value!.trim())
-        .toList();
+      // Convert latitude and longitude to address
+      final List<Placemark> placemarks = await geocoding
+          .placemarkFromCoordinates(latitude, longitude);
 
-    if (parts.isEmpty) {
+      if (placemarks.isEmpty) {
+        return 'Location not available';
+      }
+
+      final place = placemarks.first;
+
+      final parts =
+          [
+                place.street,
+                place.subLocality,
+                place.locality,
+                place.administrativeArea,
+                place.country,
+              ]
+              .where((value) => value != null && value.trim().isNotEmpty)
+              .map((value) => value!.trim())
+              .toList();
+
+      if (parts.isEmpty) {
+        return 'Location not available';
+      }
+
+      return parts.join(', ');
+    } catch (e) {
+      debugPrint('Error loading address: $e');
       return 'Location not available';
     }
-
-    return parts.join(', ');
-  } catch (e) {
-    debugPrint('Error loading address: $e');
-    return 'Location not available';
   }
-}
 
   @override
   Widget build(BuildContext context) {
@@ -198,6 +201,10 @@ class _ManagerIssueDetailScreenState extends State<ManagerIssueDetailScreen> {
         }
       });
     }
+
+    final authProvider = context.watch<AuthProvider>();
+    final user = authProvider.user;
+    final isManager = user?.role.toLowerCase() == 'manager';
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -250,7 +257,9 @@ class _ManagerIssueDetailScreenState extends State<ManagerIssueDetailScreen> {
                         child: SizedBox(
                           width: double.infinity,
                           height: 200,
-                          child: widget.issue.imageUrl != null && widget.issue.imageUrl!.trim().isNotEmpty
+                          child:
+                              widget.issue.imageUrl != null &&
+                                  widget.issue.imageUrl!.trim().isNotEmpty
                               ? Image.network(
                                   widget.issue.imageUrl!,
                                   fit: BoxFit.cover,
@@ -301,8 +310,11 @@ class _ManagerIssueDetailScreenState extends State<ManagerIssueDetailScreen> {
                       FutureBuilder<UserModel?>(
                         future: _loadReporter(),
                         builder: (context, snapshot) {
-                          final reporterName = snapshot.data?.name ??
-                              (widget.issue.userId.isNotEmpty ? widget.issue.userId : 'Unknown reporter');
+                          final reporterName =
+                              snapshot.data?.name ??
+                              (widget.issue.userId.isNotEmpty
+                                  ? widget.issue.userId
+                                  : 'Unknown reporter');
                           return _DetailRow(
                             icon: Icons.person_outline_rounded,
                             label: 'REPORTER',
@@ -354,36 +366,39 @@ class _ManagerIssueDetailScreenState extends State<ManagerIssueDetailScreen> {
                 ),
               ),
               const SizedBox(height: 14),
-              Row(
-                children: [
-                  Expanded(
-                    child: _ActionButton(
-                      label: 'Reassign',
-                      textColor: AppColors.primary,
-                      borderColor: AppColors.primary,
-                      background: AppColors.white,
-                      icon: Icons.person_add_alt_1_rounded,
-                      onTap: () {
-                        Navigator.of(context).pushNamed(
-                          AppRoutes.managerAssignIssue,
-                          arguments: issue,
-                        );
-                      },
+              if (isManager) ...[
+                Row(
+                  children: [
+                    Expanded(
+                      child: _ActionButton(
+                        label: 'Reassign',
+                        textColor: AppColors.primary,
+                        borderColor: AppColors.primary,
+                        background: AppColors.white,
+                        icon: Icons.person_add_alt_1_rounded,
+                        onTap: () {
+                          Navigator.of(context).pushNamed(
+                            AppRoutes.managerAssignIssue,
+                            arguments: issue,
+                          );
+                        },
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _ActionButton(
-                      label: 'Update Status',
-                      textColor: AppColors.white,
-                      borderColor: AppColors.primary,
-                      background: AppColors.primary,
-                      icon: Icons.sync_rounded,
-                      onTap: _showStatusSheet,
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _ActionButton(
+                        label: 'Update Status',
+                        textColor: AppColors.white,
+                        borderColor: AppColors.primary,
+                        background: AppColors.primary,
+                        icon: Icons.sync_rounded,
+                        onTap: _showStatusSheet,
+                      ),
                     ),
-                  ),
-                ],
-              ),
+                  ],
+                ),
+              ],
+
               const SizedBox(height: 16),
             ],
           ),
@@ -545,11 +560,7 @@ class _DetailRow extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.only(top: 4),
-            child: Icon(
-              icon,
-              size: 22,
-              color: AppColors.textDark,
-            ),
+            child: Icon(icon, size: 22, color: AppColors.textDark),
           ),
           const SizedBox(width: 12),
           Expanded(

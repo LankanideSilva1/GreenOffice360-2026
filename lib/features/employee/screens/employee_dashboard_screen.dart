@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:greenoffice360/features/employee/screens/employee_reports_screen.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/constants/app_colors.dart';
@@ -8,7 +9,9 @@ import 'employee_main_screen.dart';
 import 'employee_profile_screen.dart';
 
 class EmployeeDashboardScreen extends StatelessWidget {
-  const EmployeeDashboardScreen({super.key});
+  const EmployeeDashboardScreen({super.key, this.initialIndex = 0});
+
+  final int initialIndex;
 
   @override
   Widget build(BuildContext context) {
@@ -32,6 +35,8 @@ class EmployeeDashboardScreen extends StatelessWidget {
         sustainabilityPoints: sustainabilityPoints,
       ),
       profileTabContent: const EmployeeProfileScreen(),
+      reportTabContent: const EmployeeReportScreen(),
+      initialIndex: initialIndex,
     );
   }
 
@@ -79,7 +84,8 @@ class EmployeeHomeDashboard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
+    final isPortrait =
+        MediaQuery.of(context).orientation == Orientation.portrait;
 
     return SingleChildScrollView(
       child: Column(
@@ -138,7 +144,11 @@ class EmployeeHomeDashboard extends StatelessWidget {
                   shape: BoxShape.circle,
                   border: Border.all(color: AppColors.white, width: 2),
                 ),
-                child: const Icon(Icons.person, color: AppColors.textDark, size: 26),
+                child: const Icon(
+                  Icons.person,
+                  color: AppColors.textDark,
+                  size: 26,
+                ),
               ),
             ],
           ),
@@ -207,7 +217,10 @@ class EmployeeHomeDashboard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
                           decoration: BoxDecoration(
                             color: AppColors.white.withOpacity(0.12),
                             borderRadius: BorderRadius.circular(20),
@@ -228,7 +241,7 @@ class EmployeeHomeDashboard extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 15,
                             height: 1.4,
-                              color: AppColors.white,
+                            color: AppColors.white,
                           ),
                         ),
                         const SizedBox(height: 16),
@@ -260,7 +273,9 @@ class EmployeeHomeDashboard extends StatelessWidget {
                             child: LinearProgressIndicator(
                               value: (greenScore / 100).clamp(0.0, 1.0),
                               backgroundColor: AppColors.white.withOpacity(0.2),
-                              valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
+                              valueColor: const AlwaysStoppedAnimation<Color>(
+                                AppColors.primary,
+                              ),
                             ),
                           ),
                         ),
@@ -332,11 +347,23 @@ class EmployeeHomeDashboard extends StatelessWidget {
               _QuickActionTile(
                 label: 'Report Issue',
                 icon: Icons.info_outline,
-                onTap: () => Navigator.pushNamed(context, AppRoutes.issueCategory),
+                onTap: () =>
+                    Navigator.pushNamed(context, AppRoutes.issueCategory),
               ),
-              const _QuickActionTile(label: 'My Reports', icon: Icons.insert_drive_file_outlined),
-              const _QuickActionTile(label: 'Challenges', icon: Icons.flag_outlined),
-              const _QuickActionTile(label: 'Rewards', icon: Icons.card_giftcard_outlined),
+              _QuickActionTile(
+                label: 'My Reports',
+                icon: Icons.insert_drive_file_outlined,
+                onTap: () =>
+                    Navigator.pushNamed(context, AppRoutes.employeeReports),
+              ),
+              const _QuickActionTile(
+                label: 'Challenges',
+                icon: Icons.flag_outlined,
+              ),
+              const _QuickActionTile(
+                label: 'Rewards',
+                icon: Icons.card_giftcard_outlined,
+              ),
             ],
           ),
           const SizedBox(height: 28),
@@ -408,7 +435,9 @@ class EmployeeHomeDashboard extends StatelessWidget {
                     child: LinearProgressIndicator(
                       value: 0.72,
                       backgroundColor: AppColors.progressBackground,
-                      valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
+                      valueColor: const AlwaysStoppedAnimation<Color>(
+                        AppColors.primary,
+                      ),
                     ),
                   ),
                 ),
@@ -480,7 +509,9 @@ class EmployeeHomeDashboard extends StatelessWidget {
   }
 
   String _formatNumber(int value) {
-    return value >= 1000 ? '${(value / 1000).toStringAsFixed(value % 1000 == 0 ? 0 : 1)}k' : value.toString();
+    return value >= 1000
+        ? '${(value / 1000).toStringAsFixed(value % 1000 == 0 ? 0 : 1)}k'
+        : value.toString();
   }
 }
 
@@ -502,10 +533,7 @@ class _AnalyticsTile extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: AppColors.cardBorder,
-          width: 1,
-        ),
+        border: Border.all(color: AppColors.cardBorder, width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -554,11 +582,7 @@ class _AnalyticsTile extends StatelessWidget {
 }
 
 class _QuickActionTile extends StatelessWidget {
-  const _QuickActionTile({
-    required this.label,
-    required this.icon,
-    this.onTap,
-  });
+  const _QuickActionTile({required this.label, required this.icon, this.onTap});
 
   final String label;
   final IconData icon;
@@ -607,11 +631,7 @@ class _QuickActionTile extends StatelessWidget {
 }
 
 class _ActivityRow extends StatelessWidget {
-  const _ActivityRow({
-    required this.title,
-    required this.subtitle,
-    this.badge,
-  });
+  const _ActivityRow({required this.title, required this.subtitle, this.badge});
 
   final String title;
   final String subtitle;
@@ -629,7 +649,11 @@ class _ActivityRow extends StatelessWidget {
             color: AppColors.softGreen,
             borderRadius: BorderRadius.circular(999),
           ),
-          child: const Icon(Icons.check_circle_outline, size: 16, color: AppColors.primary),
+          child: const Icon(
+            Icons.check_circle_outline,
+            size: 16,
+            color: AppColors.primary,
+          ),
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -657,7 +681,10 @@ class _ActivityRow extends StatelessWidget {
                   if (badge != null) ...[
                     const SizedBox(width: 10),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: AppColors.softGreen,
                         borderRadius: BorderRadius.circular(6),

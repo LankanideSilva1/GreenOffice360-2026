@@ -65,7 +65,7 @@ class _IssueSelectCategoryScreenState extends State<IssueSelectCategoryScreen> {
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: const Text(
-                                'STEP 1 OF 5',
+                                'STEP 1 OF 2',
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w700,

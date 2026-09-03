@@ -7,6 +7,7 @@ import 'package:greenoffice360/features/auth/screens/registration_screen.dart';
 import 'package:greenoffice360/features/auth/screens/splash_screen.dart';
 import 'package:greenoffice360/features/employee/screens/employee_dashboard_screen.dart';
 import 'package:greenoffice360/features/employee/screens/employee_profile_screen.dart';
+import 'package:greenoffice360/features/employee/screens/employee_reports_screen.dart';
 import 'package:greenoffice360/features/issues/screens/issue_details_screen.dart';
 import 'package:greenoffice360/features/issues/screens/issue_review_screen.dart';
 import 'package:greenoffice360/features/issues/screens/issue_select_category.dart';
@@ -34,10 +35,8 @@ import 'package:greenoffice360/repositories/issue_repository.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-   final localDatabaseService = LocalDatabaseService();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  final localDatabaseService = LocalDatabaseService();
   await localDatabaseService.initialize();
   final connectivityService = ConnectivityService();
   final offlineIssueRepository = OfflineIssueRepository();
@@ -51,20 +50,14 @@ Future<void> main() async {
   // Start automatic synchronization
   syncService.startAutoSync();
   final authRepository = AuthRepository();
-  final authController = AuthController(
-    repository: authRepository
-  );
+  final authController = AuthController(repository: authRepository);
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider<AuthProvider>(
-          create: (_) => AuthProvider(
-            controller: authController,
-          ),
+          create: (_) => AuthProvider(controller: authController),
         ),
-        Provider<CloudinaryService>(
-          create: (_) => CloudinaryService(),
-        ),
+        Provider<CloudinaryService>(create: (_) => CloudinaryService()),
         ChangeNotifierProvider<IssueProvider>(
           create: (context) => IssueProvider(
             controller: IssueController(
@@ -91,13 +84,11 @@ class GreenOfficeApp extends StatelessWidget {
       theme: AppTheme.lightTheme,
       debugShowCheckedModeBanner: false,
       initialRoute: AppRoutes.splash,
-       routes: {
+      routes: {
         AppRoutes.splash: (_) => const SplashScreen(),
-        AppRoutes.login:
-            (_) => const LoginScreen(),
+        AppRoutes.login: (_) => const LoginScreen(),
 
-        AppRoutes.registration:
-            (_) => const RegistrationScreen(),
+        AppRoutes.registration: (_) => const RegistrationScreen(),
 
         AppRoutes.issueCategory: (_) => const IssueSelectCategoryScreen(),
 
@@ -108,7 +99,10 @@ class GreenOfficeApp extends StatelessWidget {
         },
 
         AppRoutes.issueReview: (context) {
-          final args = ModalRoute.of(context)?.settings.arguments as Map<String, String>? ?? const {};
+          final args =
+              ModalRoute.of(context)?.settings.arguments
+                  as Map<String, String>? ??
+              const {};
           return IssueReviewScreen(
             selectedCategory: args['selectedCategory'] ?? 'Water',
             location: args['location'] ?? 'Office Block A, Floor 4',
@@ -121,14 +115,11 @@ class GreenOfficeApp extends StatelessWidget {
           return IssueSuccessScreen(issueId: args is String ? args : null);
         },
 
-        AppRoutes.employeeDashboard:
-            (_) => const EmployeeDashboardScreen(),
+        AppRoutes.employeeDashboard: (_) => const EmployeeDashboardScreen(),
 
-        AppRoutes.employeeProfile:
-            (_) => const EmployeeProfileScreen(),
+        AppRoutes.employeeProfile: (_) => const EmployeeProfileScreen(),
 
-        AppRoutes.managerDashboard:
-            (_) => const ManagerDashboardScreen(),
+        AppRoutes.managerDashboard: (_) => const ManagerDashboardScreen(),
 
         AppRoutes.managerIssueDetail: (context) {
           final args = ModalRoute.of(context)?.settings.arguments;
@@ -147,6 +138,9 @@ class GreenOfficeApp extends StatelessWidget {
           }
           return ManagerAssignIssueScreen(issue: issue);
         },
+
+        AppRoutes.employeeReports: (_) =>
+            const EmployeeDashboardScreen(initialIndex: 1),
 
         // AppRoutes.adminDashboard:
         //     (_) => const AdminDashboardScreen(),

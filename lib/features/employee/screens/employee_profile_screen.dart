@@ -19,18 +19,21 @@ class EmployeeProfileScreen extends StatelessWidget {
       body: SafeArea(
         child: EmployeeProfileContent(
           name: user?.name.trim().isNotEmpty == true ? user!.name : '',
-          employeeId: user?.employeeId.trim().isNotEmpty == true ? user!.employeeId : '',
-          department: user?.department.trim().isNotEmpty == true ? user!.department : '',
+          employeeId: user?.employeeId.trim().isNotEmpty == true
+              ? user!.employeeId
+              : '',
+          department: user?.department.trim().isNotEmpty == true
+              ? user!.department
+              : '',
           greenScore: user?.greenScore ?? 0,
           points: user?.points ?? 0,
           showManagerMode: isManager,
           onLogout: () async {
             await authProvider.logout();
             if (context.mounted) {
-              Navigator.of(context).pushNamedAndRemoveUntil(
-                AppRoutes.login,
-                (route) => false,
-              );
+              Navigator.of(
+                context,
+              ).pushNamedAndRemoveUntil(AppRoutes.login, (route) => false);
             }
           },
         ),
@@ -93,7 +96,7 @@ class EmployeeProfileContent extends StatelessWidget {
             ),
             const SizedBox(height: 14),
             Text(
-                  name,
+              name,
               style: const TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.w700,
@@ -119,103 +122,112 @@ class EmployeeProfileContent extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 22),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-      color: AppColors.scoreCard,
-                borderRadius: BorderRadius.circular(18),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-      const Icon(Icons.eco_rounded, color: AppColors.white, size: 18),
-                            const SizedBox(width: 8),
-                            const Text(
-                              'Green Score',
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w700,
+
+            if (showEmployeeContent) ...[
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.scoreCard,
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.eco_rounded,
                                 color: AppColors.white,
+                                size: 18,
                               ),
-                            ),
-                            const Spacer(),
-                            Text(
-                              'Level ${_levelForScore(greenScore)}',
-                              style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.white,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(
-                              '$greenScore',
-                              style: const TextStyle(
-                                fontSize: 42,
-                                fontWeight: FontWeight.w800,
-                                color: AppColors.white,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            const Padding(
-                              padding: EdgeInsets.only(bottom: 10),
-                              child: Text(
-                                'Eco Champion',
+                              const SizedBox(width: 8),
+                              const Text(
+                                'Green Score',
                                 style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.white70,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.white,
                                 ),
                               ),
+                              const Spacer(),
+                              Text(
+                                'Level ${_levelForScore(greenScore)}',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.white,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                '$greenScore',
+                                style: const TextStyle(
+                                  fontSize: 42,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.white,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              const Padding(
+                                padding: EdgeInsets.only(bottom: 10),
+                                child: Text(
+                                  'Eco Champion',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.white70,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    SizedBox(
+                      width: 54,
+                      height: 54,
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          SizedBox(
+                            width: 52,
+                            height: 52,
+                            child: CircularProgressIndicator(
+                              value: (greenScore / 1000).clamp(0.0, 1.0),
+                              backgroundColor: AppColors.white.withOpacity(
+                                0.25,
+                              ),
+                              valueColor: const AlwaysStoppedAnimation<Color>(
+                                AppColors.white,
+                              ),
+                              strokeWidth: 6,
                             ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  SizedBox(
-                    width: 54,
-                    height: 54,
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        SizedBox(
-                          width: 52,
-                          height: 52,
-                          child: CircularProgressIndicator(
-                            value: (greenScore / 1000).clamp(0.0, 1.0),
-                            backgroundColor: AppColors.white.withOpacity(0.25),
-      valueColor: const AlwaysStoppedAnimation<Color>(AppColors.white),
-                            strokeWidth: 6,
                           ),
-                        ),
-                        Text(
-                          '${((greenScore / 1000) * 100).round()}%',
-                          style: const TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.white,
+                          Text(
+                            '${((greenScore / 1000) * 100).round()}%',
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.white,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            if (showEmployeeContent) ...[
               const SizedBox(height: 18),
               Row(
                 children: [
@@ -251,7 +263,10 @@ class EmployeeProfileContent extends StatelessWidget {
               borderRadius: BorderRadius.circular(16),
               child: Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 16,
+                ),
                 decoration: BoxDecoration(
                   color: AppColors.white,
                   borderRadius: BorderRadius.circular(16),
@@ -261,7 +276,11 @@ class EmployeeProfileContent extends StatelessWidget {
                   children: const [
                     Row(
                       children: [
-      Icon(Icons.logout_rounded, color: AppColors.logout, size: 20),
+                        Icon(
+                          Icons.logout_rounded,
+                          color: AppColors.logout,
+                          size: 20,
+                        ),
                         SizedBox(width: 10),
                         Text(
                           'Logout',
@@ -273,7 +292,11 @@ class EmployeeProfileContent extends StatelessWidget {
                         ),
                       ],
                     ),
-                    Icon(Icons.chevron_right_rounded, color: AppColors.logout, size: 22),
+                    Icon(
+                      Icons.chevron_right_rounded,
+                      color: AppColors.logout,
+                      size: 22,
+                    ),
                   ],
                 ),
               ),

@@ -6,17 +6,21 @@ class EmployeeMainScreen extends StatefulWidget {
     super.key,
     this.homeTabContent,
     this.profileTabContent,
+    this.reportTabContent,
+    this.initialIndex = 0,
   });
 
   final Widget? homeTabContent;
   final Widget? profileTabContent;
+  final Widget? reportTabContent;
+  final int initialIndex;
 
   @override
   State<EmployeeMainScreen> createState() => _EmployeeMainScreenState();
 }
 
 class _EmployeeMainScreenState extends State<EmployeeMainScreen> {
-  int _selectedIndex = 0;
+  late int _selectedIndex;
 
   final List<_EmployeeTab> _tabs = const [
     _EmployeeTab(label: 'Home', icon: Icons.home_rounded),
@@ -27,20 +31,32 @@ class _EmployeeMainScreenState extends State<EmployeeMainScreen> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _selectedIndex = widget.initialIndex.clamp(0, _tabs.length - 1);
+  }
+
+  @override
   Widget build(BuildContext context) {
     final screens = [
       widget.homeTabContent ?? const _EmployeeScreenContent(title: 'Home'),
-      const _EmployeeScreenContent(title: 'Reports'),
+      widget.reportTabContent ?? const _EmployeeScreenContent(title: 'Reports'),
       const _EmployeeScreenContent(title: 'Challenges'),
       const _EmployeeScreenContent(title: 'Rewards'),
-      widget.profileTabContent ?? const _EmployeeScreenContent(title: 'Profile'),
+      widget.profileTabContent ??
+          const _EmployeeScreenContent(title: 'Profile'),
     ];
 
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 0),
+          padding: const EdgeInsets.only(
+            left: 16,
+            right: 16,
+            top: 8,
+            bottom: 0,
+          ),
           child: screens[_selectedIndex],
         ),
       ),
@@ -55,7 +71,7 @@ class _EmployeeMainScreenState extends State<EmployeeMainScreen> {
           ),
           boxShadow: [
             BoxShadow(
-      color: AppColors.navigationShadow,
+              color: AppColors.navigationShadow,
               blurRadius: 10,
               offset: Offset(0, -2),
             ),
@@ -80,7 +96,9 @@ class _EmployeeMainScreenState extends State<EmployeeMainScreen> {
                   children: [
                     Icon(
                       tab.icon,
-                      color: isSelected ? AppColors.primary : AppColors.textSecondary,
+                      color: isSelected
+                          ? AppColors.primary
+                          : AppColors.textSecondary,
                       size: 26,
                     ),
                     const SizedBox(height: 6),
@@ -88,8 +106,12 @@ class _EmployeeMainScreenState extends State<EmployeeMainScreen> {
                       tab.label,
                       style: TextStyle(
                         fontSize: 11,
-                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                        color: isSelected ? AppColors.primary : AppColors.textSecondary,
+                        fontWeight: isSelected
+                            ? FontWeight.w600
+                            : FontWeight.w500,
+                        color: isSelected
+                            ? AppColors.primary
+                            : AppColors.textSecondary,
                       ),
                     ),
                   ],
@@ -104,10 +126,7 @@ class _EmployeeMainScreenState extends State<EmployeeMainScreen> {
 }
 
 class _EmployeeTab {
-  const _EmployeeTab({
-    required this.label,
-    required this.icon,
-  });
+  const _EmployeeTab({required this.label, required this.icon});
 
   final String label;
   final IconData icon;

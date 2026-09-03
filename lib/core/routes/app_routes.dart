@@ -17,6 +17,8 @@ class AppRoutes {
 
   static const employeeProfile = '/employee/profile';
 
+  static const employeeReports = '/employee/reports';
+
   static const managerDashboard = '/manager/dashboard';
 
   static const managerIssueDetail = '/manager/issue/detail';
