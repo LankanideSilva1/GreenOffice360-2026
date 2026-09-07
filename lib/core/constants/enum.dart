@@ -1,6 +1,7 @@
 enum IssueStatus {
   pending,
   acknowledged,
+  verified,
   inProgress,
   resolved,
   rejected,

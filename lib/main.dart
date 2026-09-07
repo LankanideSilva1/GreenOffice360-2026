@@ -152,6 +152,9 @@ class GreenOfficeApp extends StatelessWidget {
         AppRoutes.employeeReports: (_) =>
             const EmployeeDashboardScreen(initialIndex: 1),
 
+        AppRoutes.employeeChallenges: (_) =>
+            const EmployeeDashboardScreen(initialIndex: 2),
+
         // AppRoutes.adminDashboard:
         //     (_) => const AdminDashboardScreen(),
       },

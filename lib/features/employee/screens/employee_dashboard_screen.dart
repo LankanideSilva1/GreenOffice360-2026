@@ -358,9 +358,11 @@ class EmployeeHomeDashboard extends StatelessWidget {
                 onTap: () =>
                     Navigator.pushNamed(context, AppRoutes.employeeReports),
               ),
-              const _QuickActionTile(
+              _QuickActionTile(
                 label: 'Challenges',
                 icon: Icons.flag_outlined,
+                onTap: () =>
+                    Navigator.pushNamed(context, AppRoutes.employeeChallenges),
               ),
               const _QuickActionTile(
                 label: 'Rewards',
@@ -459,44 +461,6 @@ class EmployeeHomeDashboard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 28),
-          const Text(
-            'Recent Activity',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w800,
-              color: AppColors.textDark,
-            ),
-          ),
-          const SizedBox(height: 14),
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: AppColors.white,
-              borderRadius: BorderRadius.circular(18),
-            ),
-            child: const Column(
-              children: [
-                _ActivityRow(
-                  title: 'Reported recycling bin overflow on 4th floor',
-                  subtitle: '2h ago',
-                  badge: 'IN PROGRESS',
-                ),
-                Divider(height: 28),
-                _ActivityRow(
-                  title: 'Completed the commuter energy saving challenge',
-                  subtitle: 'Yesterday',
-                  badge: 'VERIFIED',
-                ),
-                Divider(height: 28),
-                _ActivityRow(
-                  title: 'Earned 50 sustainability points (HVAC report)',
-                  subtitle: 'Yesterday',
-                  badge: null,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 30),
         ],
       ),
     );

@@ -7,6 +7,15 @@ abstract class ChallengeRepository {
   Future<List<ChallengeModel>> getChallenges();
 
   Future<String> createParticipation({required String challengeId});
+
+  Future<void> deleteParticipation({required String challengeId});
+
+  Future<void> updateCompletedSubsteps({
+    required String challengeId,
+    required List<String> completedSubstepIds,
+    required int pointsEarned,
+    required int totalSubsteps,
+  });
 }
 
 class FirestoreChallengeRepository implements ChallengeRepository {
@@ -63,8 +72,28 @@ class FirestoreChallengeRepository implements ChallengeRepository {
         joinedByUser: participation != null,
         participantCount: participantCounts[document.id] ?? 0,
         progress: progress,
+        completedSubstepIds: _completedSubstepIds(participation),
       );
     }).toList();
+  }
+
+  @override
+  Future<void> deleteParticipation({required String challengeId}) async {
+    final userId = _firebaseAuth.currentUser?.uid;
+    if (userId == null) {
+      throw StateError('You must be signed in to leave a challenge.');
+    }
+
+    final participation = await _firestore
+        .collection('challengeParticipation')
+        .where('userId', isEqualTo: userId)
+        .get();
+    for (final document in participation.docs) {
+      if (document.data()['challengeId'] == challengeId) {
+        await document.reference.delete();
+        return;
+      }
+    }
   }
 
   @override
@@ -97,8 +126,49 @@ class FirestoreChallengeRepository implements ChallengeRepository {
     return document.id;
   }
 
+  @override
+  Future<void> updateCompletedSubsteps({
+    required String challengeId,
+    required List<String> completedSubstepIds,
+    required int pointsEarned,
+    required int totalSubsteps,
+  }) async {
+    final userId = _firebaseAuth.currentUser?.uid;
+    if (userId == null) {
+      throw StateError('You must be signed in to update a challenge.');
+    }
+
+    final participation = await _firestore
+        .collection('challengeParticipation')
+        .where('userId', isEqualTo: userId)
+        .get();
+    QueryDocumentSnapshot<Map<String, dynamic>>? document;
+    for (final candidate in participation.docs) {
+      if (candidate.data()['challengeId'] == challengeId) {
+        document = candidate;
+        break;
+      }
+    }
+    if (document == null) {
+      throw StateError('Challenge participation was not found.');
+    }
+
+    final completed = completedSubstepIds.length == totalSubsteps;
+    await document.reference.update({
+      'completedSubsteps': completedSubstepIds,
+      'pointsEarned': pointsEarned,
+      'status': completed ? 'completed' : 'joined',
+      'completedAt': completed ? FieldValue.serverTimestamp() : null,
+    });
+  }
+
   int _completedSubstepCount(Map<String, dynamic>? participation) {
     final completed = participation?['completedSubsteps'];
     return completed is List ? completed.length : 0;
+  }
+
+  List<String> _completedSubstepIds(Map<String, dynamic>? participation) {
+    final completed = participation?['completedSubsteps'];
+    return completed is List ? completed.whereType<String>().toList() : [];
   }
 }

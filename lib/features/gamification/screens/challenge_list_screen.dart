@@ -46,7 +46,7 @@ class _ChallengeListScreenState extends State<ChallengeListScreen> {
       return matchesSearch && matchesFilter;
     }).toList();
 
-    final user = context.watch<AuthProvider>().user;
+    final user = context.watch<AuthProvider?>()?.user;
 
     return Column(
       children: [
@@ -139,6 +139,7 @@ class _ChallengeListScreenState extends State<ChallengeListScreen> {
             status: challenge.statusLabel,
             joinedByUser: true,
             substeps: challenge.substeps,
+            completedSubstepIds: challenge.completedSubstepIds,
           ),
         ),
       );

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:greenoffice360/core/constants/app_colors.dart';
 import 'package:greenoffice360/models/challenge_model.dart';
+import 'package:greenoffice360/features/gamification/providers/challenge_provider.dart';
+import 'package:provider/provider.dart';
 
 class ChallengeDetailScreen extends StatefulWidget {
   const ChallengeDetailScreen({
@@ -17,6 +19,7 @@ class ChallengeDetailScreen extends StatefulWidget {
     required this.joinedByUser,
     this.challengeId,
     this.substeps = const [],
+    this.completedSubstepIds = const [],
   });
 
   final String title;
@@ -31,6 +34,7 @@ class ChallengeDetailScreen extends StatefulWidget {
   final bool joinedByUser;
   final String? challengeId;
   final List<ChallengeSubstep> substeps;
+  final List<String> completedSubstepIds;
 
   @override
   State<ChallengeDetailScreen> createState() => _ChallengeDetailScreenState();
@@ -42,11 +46,9 @@ class _ChallengeDetailScreenState extends State<ChallengeDetailScreen> {
   @override
   void initState() {
     super.initState();
-    final count = (widget.progress * widget.substeps.length).round();
-    _completed = List.generate(
-      widget.substeps.length,
-      (index) => index < count,
-    );
+    _completed = widget.substeps
+        .map((substep) => widget.completedSubstepIds.contains(substep.id))
+        .toList();
   }
 
   @override
@@ -55,8 +57,7 @@ class _ChallengeDetailScreenState extends State<ChallengeDetailScreen> {
     final progress = _completed.isEmpty
         ? 0.0
         : completedCount / _completed.length;
-    final points = widget.points.replaceFirst(' pts', '');
-    final earnedPoints = ((int.tryParse(points) ?? 0) * progress).round();
+    final earnedPoints = _earnedPoints;
     final joined = widget.joined.replaceFirst(' joined', '');
 
     return Scaffold(
@@ -172,8 +173,7 @@ class _ChallengeDetailScreenState extends State<ChallengeDetailScreen> {
                         return _ActionRow(
                           label: widget.substeps[index].title,
                           completed: _completed[index],
-                          onChanged: (value) =>
-                              setState(() => _completed[index] = value),
+                          onChanged: (value) => _toggleSubstep(index, value),
                         );
                       }),
                     ),
@@ -186,7 +186,7 @@ class _ChallengeDetailScreenState extends State<ChallengeDetailScreen> {
                       completedCount: completedCount,
                       totalCount: _completed.length,
                       earnedPoints: earnedPoints,
-                      points: points,
+                      points: widget.points.replaceFirst(' pts', ''),
                     ),
                   ),
                 ],
@@ -224,7 +224,7 @@ class _ChallengeDetailScreenState extends State<ChallengeDetailScreen> {
                 ),
               ),
               TextButton(
-                onPressed: widget.joinedByUser ? () {} : null,
+                onPressed: widget.joinedByUser ? _leaveChallenge : null,
                 child: const Text(
                   'Leave Challenge',
                   style: TextStyle(
@@ -238,6 +238,55 @@ class _ChallengeDetailScreenState extends State<ChallengeDetailScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _leaveChallenge() async {
+    final provider = context.read<ChallengeProvider>();
+    final deleted = await provider.leaveChallenge(widget.challengeId ?? '');
+    if (!mounted) return;
+    if (deleted) {
+      Navigator.of(context).pop();
+      return;
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(provider.errorMessage ?? 'Unable to leave challenge.'),
+      ),
+    );
+  }
+
+  int get _earnedPoints => widget.substeps.asMap().entries.fold(
+    0,
+    (total, entry) => total + (_completed[entry.key] ? entry.value.points : 0),
+  );
+
+  Future<void> _toggleSubstep(int index, bool value) async {
+    final previousValue = _completed[index];
+    setState(() => _completed[index] = value);
+
+    final completedIds = [
+      for (var stepIndex = 0; stepIndex < widget.substeps.length; stepIndex++)
+        if (_completed[stepIndex]) widget.substeps[stepIndex].id,
+    ];
+    final saved = await context
+        .read<ChallengeProvider>()
+        .updateCompletedSubsteps(
+          challengeId: widget.challengeId ?? '',
+          completedSubstepIds: completedIds,
+          pointsEarned: _earnedPoints,
+          totalSubsteps: widget.substeps.length,
+        );
+    if (!saved && mounted) {
+      setState(() => _completed[index] = previousValue);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            context.read<ChallengeProvider>().errorMessage ??
+                'Unable to save substep progress.',
+          ),
+        ),
+      );
+    }
   }
 }
 

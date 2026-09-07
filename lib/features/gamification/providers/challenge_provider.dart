@@ -63,12 +63,74 @@ class ChallengeProvider extends ChangeNotifier {
               challenge.participantCount + (challenge.joinedByUser ? 0 : 1),
           joinedByUser: true,
           progress: challenge.progress,
+          completedSubstepIds: challenge.completedSubstepIds,
         );
       }
       notifyListeners();
       return true;
     } catch (error) {
       _status = ChallengeStatus.error;
+      _errorMessage = error.toString().replaceFirst('Exception: ', '');
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> updateCompletedSubsteps({
+    required String challengeId,
+    required List<String> completedSubstepIds,
+    required int pointsEarned,
+    required int totalSubsteps,
+  }) async {
+    try {
+      await _controller.updateCompletedSubsteps(
+        challengeId: challengeId,
+        completedSubstepIds: completedSubstepIds,
+        pointsEarned: pointsEarned,
+        totalSubsteps: totalSubsteps,
+      );
+      final index = _challenges.indexWhere(
+        (challenge) => challenge.id == challengeId,
+      );
+      if (index != -1) {
+        final challenge = _challenges[index];
+        _challenges[index] = ChallengeModel(
+          id: challenge.id,
+          title: challenge.title,
+          description: challenge.description,
+          category: challenge.category,
+          difficulty: challenge.difficulty,
+          points: challenge.points,
+          durationDays: challenge.durationDays,
+          isActive: challenge.isActive,
+          substeps: challenge.substeps,
+          startDate: challenge.startDate,
+          endDate: challenge.endDate,
+          participantCount: challenge.participantCount,
+          joinedByUser: true,
+          progress: totalSubsteps == 0
+              ? 0
+              : completedSubstepIds.length / totalSubsteps,
+          completedSubstepIds: completedSubstepIds,
+        );
+      }
+      notifyListeners();
+      return true;
+    } catch (error) {
+      _errorMessage = error.toString().replaceFirst('Exception: ', '');
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> leaveChallenge(String challengeId) async {
+    _errorMessage = null;
+    try {
+      await _controller.deleteParticipation(challengeId: challengeId);
+      // _challenges.removeWhere((challenge) => challenge.id == challengeId);
+      notifyListeners();
+      return true;
+    } catch (error) {
       _errorMessage = error.toString().replaceFirst('Exception: ', '');
       notifyListeners();
       return false;

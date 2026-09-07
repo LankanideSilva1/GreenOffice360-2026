@@ -39,6 +39,7 @@ class ChallengeModel {
     this.participantCount = 0,
     this.joinedByUser = false,
     this.progress = 0,
+    this.completedSubstepIds = const [],
   });
 
   final String id;
@@ -55,12 +56,14 @@ class ChallengeModel {
   final int participantCount;
   final bool joinedByUser;
   final double progress;
+  final List<String> completedSubstepIds;
 
   factory ChallengeModel.fromDocument(
     DocumentSnapshot<Map<String, dynamic>> document, {
     bool joinedByUser = false,
     int participantCount = 0,
     double progress = 0,
+    List<String> completedSubstepIds = const [],
   }) {
     final data = document.data() ?? const <String, dynamic>{};
     final rawSubsteps = data['substeps'];
@@ -89,6 +92,7 @@ class ChallengeModel {
       joinedByUser: joinedByUser,
       participantCount: participantCount,
       progress: progress,
+      completedSubstepIds: completedSubstepIds,
     );
   }
 

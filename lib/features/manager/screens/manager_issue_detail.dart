@@ -69,7 +69,7 @@ class _ManagerIssueDetailScreenState extends State<ManagerIssueDetailScreen> {
       (issue) => issue.id == widget.issue.id,
       orElse: () => widget.issue,
     );
-    final statuses = ['Pending', 'Assigned', 'In Progress', 'Resolved'];
+    final statuses = ['Pending', 'Verified', 'Assigned', 'In Progress', 'Resolved'];
     final selected = await showModalBottomSheet<String>(
       context: context,
       backgroundColor: Colors.transparent,

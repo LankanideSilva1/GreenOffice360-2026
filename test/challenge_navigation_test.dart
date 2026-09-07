@@ -9,6 +9,9 @@ import 'package:greenoffice360/repositories/challenge_repository.dart';
 
 class _FakeChallengeRepository implements ChallengeRepository {
   bool participationCreated = false;
+  List<String> savedSubstepIds = [];
+  int savedPoints = 0;
+  String? deletedChallengeId;
 
   @override
   Future<List<ChallengeModel>> getChallenges() async {
@@ -39,6 +42,22 @@ class _FakeChallengeRepository implements ChallengeRepository {
   Future<String> createParticipation({required String challengeId}) async {
     participationCreated = true;
     return 'participation_001';
+  }
+
+  @override
+  Future<void> updateCompletedSubsteps({
+    required String challengeId,
+    required List<String> completedSubstepIds,
+    required int pointsEarned,
+    required int totalSubsteps,
+  }) async {
+    savedSubstepIds = completedSubstepIds;
+    savedPoints = pointsEarned;
+  }
+
+  @override
+  Future<void> deleteParticipation({required String challengeId}) async {
+    deletedChallengeId = challengeId;
   }
 }
 
@@ -71,5 +90,17 @@ void main() {
     expect(find.text('ABOUT'), findsOneWidget);
     expect(find.text('REQUIRED ACTIONS'), findsOneWidget);
     expect(find.text('YOUR PROGRESS'), findsOneWidget);
+
+    await tester.ensureVisible(find.text('Use reusable containers'));
+    await tester.tap(find.text('Use reusable containers'));
+    await tester.pumpAndSettle();
+
+    expect(repository.savedSubstepIds, ['step_1']);
+    expect(repository.savedPoints, 30);
+
+    await tester.tap(find.text('Leave Challenge'));
+    await tester.pumpAndSettle();
+
+    expect(repository.deletedChallengeId, 'challenge_001');
   });
 }
