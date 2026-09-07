@@ -7,6 +7,7 @@ import '../../../core/routes/app_routes.dart';
 import '../../auth/providers/auth_provider.dart';
 import 'employee_main_screen.dart';
 import 'employee_profile_screen.dart';
+import '../../gamification/screens/challenge_list_screen.dart';
 
 class EmployeeDashboardScreen extends StatelessWidget {
   const EmployeeDashboardScreen({super.key, this.initialIndex = 0});
@@ -36,6 +37,7 @@ class EmployeeDashboardScreen extends StatelessWidget {
       ),
       profileTabContent: const EmployeeProfileScreen(),
       reportTabContent: const EmployeeReportScreen(),
+      challengeTabContent: const ChallengeListScreen(),
       initialIndex: initialIndex,
     );
   }

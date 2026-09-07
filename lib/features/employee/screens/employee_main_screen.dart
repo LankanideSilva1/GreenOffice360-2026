@@ -7,12 +7,14 @@ class EmployeeMainScreen extends StatefulWidget {
     this.homeTabContent,
     this.profileTabContent,
     this.reportTabContent,
+    this.challengeTabContent,
     this.initialIndex = 0,
   });
 
   final Widget? homeTabContent;
   final Widget? profileTabContent;
   final Widget? reportTabContent;
+  final Widget? challengeTabContent;
   final int initialIndex;
 
   @override
@@ -41,7 +43,8 @@ class _EmployeeMainScreenState extends State<EmployeeMainScreen> {
     final screens = [
       widget.homeTabContent ?? const _EmployeeScreenContent(title: 'Home'),
       widget.reportTabContent ?? const _EmployeeScreenContent(title: 'Reports'),
-      const _EmployeeScreenContent(title: 'Challenges'),
+      widget.challengeTabContent ??
+          const _EmployeeScreenContent(title: 'Challenges'),
       const _EmployeeScreenContent(title: 'Rewards'),
       widget.profileTabContent ??
           const _EmployeeScreenContent(title: 'Profile'),
