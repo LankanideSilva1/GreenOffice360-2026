@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:greenoffice360/core/constants/app_colors.dart';
 import 'package:greenoffice360/models/challenge_model.dart';
 import 'package:greenoffice360/features/gamification/providers/challenge_provider.dart';
+import 'package:greenoffice360/features/gamification/screens/leaderboard_screen.dart';
 import 'package:provider/provider.dart';
 
 class ChallengeDetailScreen extends StatefulWidget {
@@ -210,7 +211,11 @@ class _ChallengeDetailScreenState extends State<ChallengeDetailScreen> {
                 width: double.infinity,
                 height: 46,
                 child: FilledButton(
-                  onPressed: () {},
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const LeaderboardScreen(),
+                    ),
+                  ),
                   style: FilledButton.styleFrom(
                     backgroundColor: const Color(0xFF13A451),
                     shape: RoundedRectangleBorder(

@@ -16,6 +16,8 @@ import 'package:greenoffice360/features/issues/controllers/issue_controller.dart
 import 'package:greenoffice360/features/issues/providers/issue_provider.dart';
 import 'package:greenoffice360/features/gamification/controllers/challenge_controller.dart';
 import 'package:greenoffice360/features/gamification/providers/challenge_provider.dart';
+import 'package:greenoffice360/features/gamification/controllers/leaderboard_controller.dart';
+import 'package:greenoffice360/features/gamification/providers/leaderboard_provider.dart';
 import 'package:greenoffice360/features/manager/screens/manager_assign_issue.dart';
 import 'package:greenoffice360/features/manager/screens/manager_dashboard_screen.dart';
 import 'package:greenoffice360/features/manager/screens/manager_issue_detail.dart';
@@ -35,6 +37,7 @@ import 'package:greenoffice360/firebase_options.dart';
 import 'package:greenoffice360/repositories/auth_repository.dart';
 import 'package:greenoffice360/repositories/issue_repository.dart';
 import 'package:greenoffice360/repositories/challenge_repository.dart';
+import 'package:greenoffice360/repositories/leaderboard_repository.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -75,6 +78,13 @@ Future<void> main() async {
           create: (_) => ChallengeProvider(
             controller: ChallengeController(
               repository: FirestoreChallengeRepository(),
+            ),
+          ),
+        ),
+        ChangeNotifierProvider<LeaderboardProvider>(
+          create: (_) => LeaderboardProvider(
+            controller: LeaderboardController(
+              repository: FirestoreLeaderboardRepository(),
             ),
           ),
         ),
