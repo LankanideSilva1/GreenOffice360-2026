@@ -153,12 +153,31 @@ class FirestoreChallengeRepository implements ChallengeRepository {
       throw StateError('Challenge participation was not found.');
     }
 
-    final completed = completedSubstepIds.length == totalSubsteps;
-    await document.reference.update({
-      'completedSubsteps': completedSubstepIds,
-      'pointsEarned': pointsEarned,
-      'status': completed ? 'completed' : 'joined',
-      'completedAt': completed ? FieldValue.serverTimestamp() : null,
+    final participationReference = document.reference;
+    final completed =
+        totalSubsteps > 0 && completedSubstepIds.length == totalSubsteps;
+    await _firestore.runTransaction((transaction) async {
+      final current = await transaction.get(participationReference);
+      final userReference = _firestore.collection('users').doc(userId);
+      final userSnapshot = await transaction.get(userReference);
+      final data = current.data() ?? const <String, dynamic>{};
+      final userData = userSnapshot.data() ?? const <String, dynamic>{};
+      final completionAwarded = data['greenScoreAwarded'] == true;
+
+      transaction.update(participationReference, {
+        'completedSubsteps': completedSubstepIds,
+        'pointsEarned': pointsEarned,
+        'status': completed ? 'completed' : 'joined',
+        'completedAt': completed ? FieldValue.serverTimestamp() : null,
+        if (completed && !completionAwarded) 'greenScoreAwarded': true,
+      });
+
+      if (completed && !completionAwarded) {
+        transaction.update(userReference, {
+          'greenScore': _toInt(userData['greenScore']) + 25,
+          'points': _toInt(userData['points']) + 25,
+        });
+      }
     });
   }
 
@@ -170,5 +189,10 @@ class FirestoreChallengeRepository implements ChallengeRepository {
   List<String> _completedSubstepIds(Map<String, dynamic>? participation) {
     final completed = participation?['completedSubsteps'];
     return completed is List ? completed.whereType<String>().toList() : [];
+  }
+
+  int _toInt(Object? value) {
+    if (value is num) return value.toInt();
+    return int.tryParse(value?.toString() ?? '') ?? 0;
   }
 }

@@ -115,8 +115,19 @@ class IssueRepository {
         createdAt: issue.createdAt,
       );
 
-      // Save issue details + Cloudinary URL
-      await document.set(savedIssue.toMap());
+      await _firestore.runTransaction((transaction) async {
+        final userReference = _firestore.collection('users').doc(issue.userId);
+        final userSnapshot = await transaction.get(userReference);
+        final userData = userSnapshot.data() ?? const <String, dynamic>{};
+        transaction.set(document, {
+          ...savedIssue.toMap(),
+          'greenScoreAwards': {'reported': true},
+        });
+        transaction.update(userReference, {
+          'greenScore': _toInt(userData['greenScore']) + 10,
+          'points': _toInt(userData['points']) + 10,
+        });
+      });
 
       return savedIssue;
     } catch (e) {
@@ -129,13 +140,67 @@ class IssueRepository {
     required String status,
   }) async {
     try {
-      await _firestore.collection('issues').doc(issueId).update({
-        'status': status,
-        'updatedAt': FieldValue.serverTimestamp(),
+      final issueReference = _firestore.collection('issues').doc(issueId);
+      await _firestore.runTransaction((transaction) async {
+        final snapshot = await transaction.get(issueReference);
+        final data = snapshot.data() ?? const <String, dynamic>{};
+        final currentStatus = (data['status'] as String? ?? '').toLowerCase();
+        final normalizedStatus = status.toLowerCase();
+        final userId = data['userId'] as String?;
+        final userReference = userId == null || userId.isEmpty
+            ? null
+            : _firestore.collection('users').doc(userId);
+        final userSnapshot = userReference == null
+            ? null
+            : await transaction.get(userReference);
+        final userData = userSnapshot?.data() ?? const <String, dynamic>{};
+        final awards = Map<String, dynamic>.from(
+          (data['greenScoreAwards'] as Map?) ?? const {},
+        );
+        final awardKey = _issueAwardKey(normalizedStatus);
+        final awardPoints = _issueAwardPoints(normalizedStatus);
+        final shouldAward =
+            awardKey != null &&
+            awardPoints > 0 &&
+            currentStatus != normalizedStatus &&
+            awards[awardKey] != true;
+
+        final updates = <String, dynamic>{
+          'status': status,
+          'updatedAt': FieldValue.serverTimestamp(),
+        };
+        if (shouldAward && awardKey != null) {
+          awards[awardKey] = true;
+          updates['greenScoreAwards'] = awards;
+        }
+        transaction.update(issueReference, updates);
+        if (shouldAward && userReference != null) {
+          transaction.update(userReference, {
+            'greenScore': _toInt(userData['greenScore']) + awardPoints,
+            'points': _toInt(userData['points']) + awardPoints,
+          });
+        }
       });
     } catch (e) {
       throw Exception('Failed to update issue status: $e');
     }
+  }
+
+  String? _issueAwardKey(String status) {
+    if (status == 'verified') return 'verified';
+    if (status == 'resolved') return 'resolved';
+    return null;
+  }
+
+  int _issueAwardPoints(String status) {
+    if (status == 'verified') return 5;
+    if (status == 'resolved') return 20;
+    return 0;
+  }
+
+  int _toInt(Object? value) {
+    if (value is num) return value.toInt();
+    return int.tryParse(value?.toString() ?? '') ?? 0;
   }
 
   Future<void> assignIssue({
