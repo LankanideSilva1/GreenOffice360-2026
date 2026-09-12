@@ -110,6 +110,20 @@ class AuthProvider extends ChangeNotifier {
     );
   }
 
+  Future<void> refreshCurrentUser() async {
+    try {
+      final refreshedUser = await _controller.refreshCurrentUser();
+      _user = refreshedUser;
+      _status = AuthStatus.authenticated;
+      _errorMessage = null;
+      notifyListeners();
+    } catch (error) {
+      _status = AuthStatus.error;
+      _errorMessage = _getErrorMessage(error);
+      notifyListeners();
+    }
+  }
+
   Future<void> logout() async {
     await _controller.logout();
 

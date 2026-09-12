@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:greenoffice360/core/constants/app_colors.dart';
+import 'package:greenoffice360/features/auth/providers/auth_provider.dart';
 import 'package:greenoffice360/models/challenge_model.dart';
 import 'package:greenoffice360/features/gamification/providers/challenge_provider.dart';
 import 'package:greenoffice360/features/gamification/screens/leaderboard_screen.dart';
@@ -21,6 +22,9 @@ class ChallengeDetailScreen extends StatefulWidget {
     this.challengeId,
     this.substeps = const [],
     this.completedSubstepIds = const [],
+    this.startDate,
+    this.endDate,
+    this.participantCount = 0,
   });
 
   final String title;
@@ -36,6 +40,9 @@ class ChallengeDetailScreen extends StatefulWidget {
   final String? challengeId;
   final List<ChallengeSubstep> substeps;
   final List<String> completedSubstepIds;
+  final DateTime? startDate;
+  final DateTime? endDate;
+  final int participantCount;
 
   @override
   State<ChallengeDetailScreen> createState() => _ChallengeDetailScreenState();
@@ -59,7 +66,9 @@ class _ChallengeDetailScreenState extends State<ChallengeDetailScreen> {
         ? 0.0
         : completedCount / _completed.length;
     final earnedPoints = _earnedPoints;
-    final joined = widget.joined.replaceFirst(' joined', '');
+    final joined = widget.participantCount;
+    final startDate = _formatDate(widget.startDate);
+    final endDate = _formatDate(widget.endDate);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF7F9FC),
@@ -134,14 +143,14 @@ class _ChallengeDetailScreenState extends State<ChallengeDetailScreen> {
                           padding: EdgeInsets.symmetric(vertical: 14),
                           child: Divider(height: 1, color: Color(0xFFDCE4EB)),
                         ),
-                        const _DateRow(
+                        _DateRow(
                           label: 'START DATE',
-                          value: 'August 18, 2026',
+                          value: startDate,
                         ),
                         const SizedBox(height: 12),
-                        const _DateRow(
+                        _DateRow(
                           label: 'END DATE',
-                          value: 'August 25, 2026',
+                          value: endDate,
                         ),
                         const SizedBox(height: 14),
                         Row(
@@ -159,9 +168,9 @@ class _ChallengeDetailScreenState extends State<ChallengeDetailScreen> {
                           ],
                         ),
                         const SizedBox(height: 7),
-                        const Padding(
-                          padding: EdgeInsets.only(left: 42),
-                          child: _ParticipantAvatars(),
+                        Padding(
+                          padding: const EdgeInsets.only(left: 42),
+                          child: _ParticipantAvatars(joined: joined),
                         ),
                       ],
                     ),
@@ -281,7 +290,8 @@ class _ChallengeDetailScreenState extends State<ChallengeDetailScreen> {
           pointsEarned: _earnedPoints,
           totalSubsteps: widget.substeps.length,
         );
-    if (!saved && mounted) {
+    if (!saved) {
+      if (!mounted) return;
       setState(() => _completed[index] = previousValue);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -291,7 +301,31 @@ class _ChallengeDetailScreenState extends State<ChallengeDetailScreen> {
           ),
         ),
       );
+      return;
     }
+
+    if (mounted) {
+      await context.read<AuthProvider>().refreshCurrentUser();
+    }
+  }
+
+  String _formatDate(DateTime? date) {
+    if (date == null) return 'Not set';
+    final month = <String>[
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
+    ][date.month - 1];
+    return '$month ${date.day}, ${date.year}';
   }
 }
 
@@ -506,7 +540,9 @@ class _CircleIcon extends StatelessWidget {
 }
 
 class _ParticipantAvatars extends StatelessWidget {
-  const _ParticipantAvatars();
+  const _ParticipantAvatars({required this.joined});
+
+  final int joined;
 
   @override
   Widget build(BuildContext context) {
@@ -516,17 +552,21 @@ class _ParticipantAvatars extends StatelessWidget {
       Color(0xFF6C9B7A),
       Color(0xFF8A6F9E),
     ];
+
+    final visibleCount = joined > 4 ? 4 : joined;
+    final overflow = joined > 4 ? joined - 4 : 0;
+
     return SizedBox(
-      height: 26,
+      height: 28,
       width: 110,
       child: Stack(
         children: [
-          for (var index = 0; index < colors.length; index++)
+          for (var index = 0; index < visibleCount; index++)
             Positioned(
               left: index * 18,
               child: CircleAvatar(
                 radius: 13,
-                backgroundColor: colors[index],
+                backgroundColor: colors[index % colors.length],
                 child: const Icon(
                   Icons.person,
                   size: 15,
@@ -534,21 +574,22 @@ class _ParticipantAvatars extends StatelessWidget {
                 ),
               ),
             ),
-          const Positioned(
-            left: 72,
-            child: CircleAvatar(
-              radius: 13,
-              backgroundColor: Color(0xFFD9F2E2),
-              child: Text(
-                '+41',
-                style: TextStyle(
-                  color: Color(0xFF147541),
-                  fontSize: 9,
-                  fontWeight: FontWeight.w800,
+          if (overflow > 0)
+            Positioned(
+              left: 72,
+              child: CircleAvatar(
+                radius: 13,
+                backgroundColor: const Color(0xFFD9F2E2),
+                child: Text(
+                  '+$overflow',
+                  style: const TextStyle(
+                    color: Color(0xFF147541),
+                    fontSize: 9,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
               ),
             ),
-          ),
         ],
       ),
     );

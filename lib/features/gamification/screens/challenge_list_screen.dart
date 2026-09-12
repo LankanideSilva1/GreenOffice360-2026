@@ -140,6 +140,9 @@ class _ChallengeListScreenState extends State<ChallengeListScreen> {
             joinedByUser: true,
             substeps: challenge.substeps,
             completedSubstepIds: challenge.completedSubstepIds,
+            startDate: challenge.startDate,
+            endDate: challenge.endDate,
+            participantCount: challenge.participantCount,
           ),
         ),
       );

@@ -197,16 +197,6 @@ class EmployeeHomeDashboard extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(width: 8),
-                          const Padding(
-                            padding: EdgeInsets.only(bottom: 12),
-                            child: Text(
-                              '/ 100',
-                              style: TextStyle(
-                                fontSize: 18,
-                                color: AppColors.white70,
-                              ),
-                            ),
-                          ),
                         ],
                       ),
                     ],
@@ -258,7 +248,7 @@ class EmployeeHomeDashboard extends StatelessWidget {
                             ),
                             const Spacer(),
                             Text(
-                              '$greenScore%',
+                              '${((greenScore / 1000) * 100).round()}%',
                               style: const TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w700,
@@ -273,7 +263,7 @@ class EmployeeHomeDashboard extends StatelessWidget {
                           child: SizedBox(
                             height: 8,
                             child: LinearProgressIndicator(
-                              value: (greenScore / 100).clamp(0.0, 1.0),
+                              value: (greenScore / 1000).clamp(0.0, 1.0),
                               backgroundColor: AppColors.white.withOpacity(0.2),
                               valueColor: const AlwaysStoppedAnimation<Color>(
                                 AppColors.primary,
@@ -467,10 +457,10 @@ class EmployeeHomeDashboard extends StatelessWidget {
   }
 
   String _levelForScore(int score) {
-    if (score >= 90) return 'Level 5';
-    if (score >= 75) return 'Level 4';
-    if (score >= 60) return 'Level 3';
-    if (score >= 40) return 'Level 2';
+    if (score >= 900) return 'Level 5';
+    if (score >= 750) return 'Level 4';
+    if (score >= 600) return 'Level 3';
+    if (score >= 400) return 'Level 2';
     return 'Level 1';
   }
 

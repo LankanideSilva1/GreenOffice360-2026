@@ -255,88 +255,6 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
   String _formatPoints(int points) =>
       points.toString().replaceAllMapped(RegExp(r'(?=(\d{3})+$)'), (_) => ',');
 
-  Widget _buildDepartmentPodium() {
-    return Container(
-      height: 275,
-      padding: const EdgeInsets.fromLTRB(18, 20, 18, 0),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFDDE5ED)),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x081B3245),
-            blurRadius: 8,
-            offset: Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Expanded(
-            child: _PodiumPlace(
-              rank: 2,
-              name: 'HR',
-              points: '2,180 pts',
-              color: const Color(0xFF647896),
-              height: 89,
-            ),
-          ),
-          Expanded(
-            child: _PodiumPlace(
-              rank: 1,
-              name: 'IT',
-              points: '2,450 pts',
-              color: const Color(0xFFE26800),
-              height: 119,
-            ),
-          ),
-          Expanded(
-            child: _PodiumPlace(
-              rank: 3,
-              name: 'Finance',
-              points: '1,950 pts',
-              color: const Color(0xFFC34D00),
-              height: 70,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildIndividualPodium() {
-    return _PodiumCard(
-      places: const [
-        _PodiumData(
-          rank: 2,
-          name: 'James Wilson',
-          avatarLabel: 'JW',
-          points: '2,890 pts',
-          color: Color(0xFF647896),
-          height: 89,
-        ),
-        _PodiumData(
-          rank: 1,
-          name: 'Sarah Chen',
-          avatarLabel: 'SC',
-          points: '3,240 pts',
-          color: Color(0xFFE26800),
-          height: 119,
-        ),
-        _PodiumData(
-          rank: 3,
-          name: 'Maria Lopez',
-          avatarLabel: 'ML',
-          points: '2,450 pts',
-          color: Color(0xFFC34D00),
-          height: 70,
-        ),
-      ],
-    );
-  }
-
   Widget _buildInsight(LeaderboardData? data) {
     return Container(
       width: double.infinity,
@@ -548,22 +466,6 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
   }
 }
 
-class _Standing {
-  const _Standing({
-    required this.rank,
-    required this.name,
-    required this.points,
-    required this.progress,
-    this.selected = false,
-  });
-
-  final int rank;
-  final String name;
-  final int points;
-  final double progress;
-  final bool selected;
-}
-
 class _PodiumData {
   const _PodiumData({
     required this.rank,
@@ -675,11 +577,11 @@ class _PodiumPlace extends StatelessWidget {
             borderRadius: BorderRadius.circular(9),
           ),
           child: Text(
-            '${rank == 1
+            rank == 1
                 ? '1ST'
                 : rank == 2
                 ? '2ND'
-                : '3RD'}',
+                : '3RD',
             style: TextStyle(
               color: color,
               fontSize: 9,

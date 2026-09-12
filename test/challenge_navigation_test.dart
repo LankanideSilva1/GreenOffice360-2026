@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
+import 'package:greenoffice360/features/auth/controllers/auth_controller.dart';
+import 'package:greenoffice360/features/auth/providers/auth_provider.dart';
 import 'package:greenoffice360/features/gamification/controllers/challenge_controller.dart';
 import 'package:greenoffice360/features/gamification/screens/challenge_list_screen.dart';
 import 'package:greenoffice360/features/gamification/providers/challenge_provider.dart';
 import 'package:greenoffice360/models/challenge_model.dart';
+import 'package:greenoffice360/models/user_model.dart';
+import 'package:greenoffice360/repositories/auth_repository.dart';
 import 'package:greenoffice360/repositories/challenge_repository.dart';
 
 class _FakeChallengeRepository implements ChallengeRepository {
@@ -61,7 +65,61 @@ class _FakeChallengeRepository implements ChallengeRepository {
   }
 }
 
+class _FakeAuthRepository extends AuthRepository {}
+
+class _FakeAuthController extends AuthController {
+  _FakeAuthController() : super(repository: _FakeAuthRepository());
+
+  @override
+  Future<UserModel> login({
+    required String email,
+    required String password,
+  }) async {
+    return const UserModel(
+      uid: 'user_1',
+      name: 'Test User',
+      email: 'test@example.com',
+      employeeId: 'EMP-01',
+      department: 'Operations',
+      role: 'employee',
+      greenScore: 10,
+      points: 35,
+    );
+  }
+
+  @override
+  Future<UserModel> refreshCurrentUser() async {
+    return const UserModel(
+      uid: 'user_1',
+      name: 'Test User',
+      email: 'test@example.com',
+      employeeId: 'EMP-01',
+      department: 'Operations',
+      role: 'employee',
+      greenScore: 20,
+      points: 85,
+    );
+  }
+}
+
 void main() {
+  test('auth provider refreshes cached points after challenge completion', () async {
+    final provider = AuthProvider(controller: _FakeAuthController());
+
+    final loggedIn = await provider.login(
+      email: 'test@example.com',
+      password: 'password',
+    );
+
+    expect(loggedIn.points, 35);
+    expect(provider.user?.points, 35);
+
+    await provider.refreshCurrentUser();
+
+    expect(provider.user?.points, 85);
+    expect(provider.user?.greenScore, 20);
+  });
+
   testWidgets('tapping a challenge opens its detail screen', (tester) async {
     final repository = _FakeChallengeRepository();
     await tester.pumpWidget(

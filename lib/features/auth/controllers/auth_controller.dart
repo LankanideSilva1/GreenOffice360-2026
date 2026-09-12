@@ -47,6 +47,14 @@ class AuthController {
     await _repository.logout();
   }
 
+  Future<UserModel> refreshCurrentUser() async {
+    final uid = _repository.currentFirebaseUser?.uid;
+    if (uid == null || uid.isEmpty) {
+      throw Exception('No authenticated user found.');
+    }
+    return _repository.getUserProfile(uid);
+  }
+
   Future<UserModel> getUserProfile(String uid) async {
     return _repository.getUserProfile(uid);
   }
