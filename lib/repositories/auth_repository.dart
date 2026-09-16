@@ -96,6 +96,13 @@ class AuthRepository {
     );
   }
 
+  Future<void> updateUserPoints(String uid, int newPoints) async {
+    if (uid.isEmpty) return;
+    await _firestore.collection('users').doc(uid).update({
+      'points': newPoints,
+    });
+  }
+
   Future<void> logout() async {
     await _firebaseAuth.signOut();
   }

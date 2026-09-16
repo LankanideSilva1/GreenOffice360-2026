@@ -47,6 +47,10 @@ class AuthController {
     await _repository.logout();
   }
 
+  Future<void> updateUserPoints(String uid, int newPoints) async {
+    await _repository.updateUserPoints(uid, newPoints);
+  }
+
   Future<UserModel> refreshCurrentUser() async {
     final uid = _repository.currentFirebaseUser?.uid;
     if (uid == null || uid.isEmpty) {

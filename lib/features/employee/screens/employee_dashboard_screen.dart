@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:greenoffice360/features/employee/screens/employee_reports_screen.dart';
+import 'package:greenoffice360/features/gamification/providers/challenge_provider.dart';
+import 'package:greenoffice360/features/gamification/screens/leaderboard_screen.dart';
+import 'package:greenoffice360/features/issues/providers/issue_provider.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/constants/app_colors.dart';
@@ -8,15 +11,35 @@ import '../../auth/providers/auth_provider.dart';
 import 'employee_main_screen.dart';
 import 'employee_profile_screen.dart';
 import '../../gamification/screens/challenge_list_screen.dart';
+import '../../gamification/screens/rewards_screen.dart';
 
-class EmployeeDashboardScreen extends StatelessWidget {
+class EmployeeDashboardScreen extends StatefulWidget {
   const EmployeeDashboardScreen({super.key, this.initialIndex = 0});
 
   final int initialIndex;
 
   @override
+  State<EmployeeDashboardScreen> createState() => _EmployeeDashboardScreenState();
+}
+
+class _EmployeeDashboardScreenState extends State<EmployeeDashboardScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<IssueProvider>().loadIssues();
+        context.read<ChallengeProvider>().loadChallenges();
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final authProvider = context.watch<AuthProvider>();
+    final issueProvider = context.watch<IssueProvider>();
+    final challengeProvider = context.watch<ChallengeProvider>();
+
     final user = authProvider.user;
     final userName = user?.name.trim() ?? '';
     final firstName = _firstName(userName);
@@ -27,6 +50,11 @@ class EmployeeDashboardScreen extends StatelessWidget {
     final sustainabilityPoints = user?.points ?? 1250;
     final greeting = _sriLankaGreeting();
 
+    final userIssues = issueProvider.issues.where((issue) => issue.userId == user?.uid).toList();
+    final submittedCount = userIssues.length;
+    final resolvedCount = userIssues.where((issue) => issue.status.toLowerCase() == 'resolved').length;
+    final challengesDoneCount = challengeProvider.challenges.where((c) => c.progress >= 1.0).length;
+
     return EmployeeMainScreen(
       homeTabContent: EmployeeHomeDashboard(
         greeting: greeting,
@@ -34,11 +62,15 @@ class EmployeeDashboardScreen extends StatelessWidget {
         department: department,
         greenScore: greenScore,
         sustainabilityPoints: sustainabilityPoints,
+        reportsSubmitted: submittedCount,
+        reportsResolved: resolvedCount,
+        challengesDone: challengesDoneCount,
       ),
       profileTabContent: const EmployeeProfileScreen(),
       reportTabContent: const EmployeeReportScreen(),
       challengeTabContent: const ChallengeListScreen(),
-      initialIndex: initialIndex,
+      rewardsTabContent: const RewardsScreen(),
+      initialIndex: widget.initialIndex,
     );
   }
 
@@ -76,6 +108,9 @@ class EmployeeHomeDashboard extends StatelessWidget {
     required this.department,
     required this.greenScore,
     required this.sustainabilityPoints,
+    required this.reportsSubmitted,
+    required this.reportsResolved,
+    required this.challengesDone,
   });
 
   final String greeting;
@@ -83,11 +118,18 @@ class EmployeeHomeDashboard extends StatelessWidget {
   final String department;
   final int greenScore;
   final int sustainabilityPoints;
+  final int reportsSubmitted;
+  final int reportsResolved;
+  final int challengesDone;
 
   @override
   Widget build(BuildContext context) {
     final isPortrait =
         MediaQuery.of(context).orientation == Orientation.portrait;
+    final challengeProvider = context.watch<ChallengeProvider>();
+    final activeChallenges = challengeProvider.challenges
+        .where((c) => c.joinedByUser && c.progress < 1.0)
+        .toList();
 
     return SingleChildScrollView(
       child: Column(
@@ -296,14 +338,14 @@ class EmployeeHomeDashboard extends StatelessWidget {
             mainAxisSpacing: 12,
             childAspectRatio: isPortrait ? 1.66 : 1.72,
             children: [
-              const _AnalyticsTile(
+              _AnalyticsTile(
                 label: 'Reports Submitted',
-                value: '24',
+                value: '$reportsSubmitted',
                 icon: Icons.description_outlined,
               ),
-              const _AnalyticsTile(
+              _AnalyticsTile(
                 label: 'Reports Resolved',
-                value: '18',
+                value: '$reportsResolved',
                 icon: Icons.check_circle_outline,
               ),
               _AnalyticsTile(
@@ -311,9 +353,9 @@ class EmployeeHomeDashboard extends StatelessWidget {
                 value: _formatNumber(sustainabilityPoints),
                 icon: Icons.star_outline,
               ),
-              const _AnalyticsTile(
+              _AnalyticsTile(
                 label: 'Challenges Done',
-                value: '7',
+                value: '$challengesDone',
                 icon: Icons.emoji_events_outlined,
               ),
             ],
@@ -334,7 +376,7 @@ class EmployeeHomeDashboard extends StatelessWidget {
             crossAxisCount: 2,
             crossAxisSpacing: 12,
             mainAxisSpacing: 12,
-            childAspectRatio: isPortrait ? 3.2 : 2.15,
+            childAspectRatio: isPortrait ? 2.4 : 1.7,
             children: [
               _QuickActionTile(
                 label: 'Report Issue',
@@ -354,9 +396,19 @@ class EmployeeHomeDashboard extends StatelessWidget {
                 onTap: () =>
                     Navigator.pushNamed(context, AppRoutes.employeeChallenges),
               ),
-              const _QuickActionTile(
+              _QuickActionTile(
                 label: 'Rewards',
                 icon: Icons.card_giftcard_outlined,
+                onTap: () => Navigator.pushNamed(context, AppRoutes.employeeRewards),
+              ),
+              _QuickActionTile(
+                label: 'Leaderboard',
+                icon: Icons.leaderboard_outlined,
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const LeaderboardScreen()),
+                  );
+                },
               ),
             ],
           ),
@@ -370,86 +422,114 @@ class EmployeeHomeDashboard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 14),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppColors.white,
-              borderRadius: BorderRadius.circular(18),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: const [
-                    Icon(Icons.recycling_outlined, color: AppColors.primary),
-                    SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        'Zero Waste Week',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.textDark,
+          if (activeChallenges.isEmpty)
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: AppColors.white,
+                borderRadius: BorderRadius.circular(18),
+              ),
+              child: const Center(
+                child: Text(
+                  'No active challenges. Join a challenge to get started!',
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ),
+            )
+          else
+            Column(
+              children: activeChallenges.map((challenge) {
+                final progress = challenge.progress.clamp(0.0, 1.0);
+                final percent = (progress * 100).round();
+                final completed = challenge.completedSubstepIds.length;
+                final total = challenge.substeps.length;
+
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppColors.white,
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.recycling_outlined, color: AppColors.primary),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              challenge.title,
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.textDark,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Text(
+                            '+${challenge.points} Pts',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        challenge.description,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: AppColors.textSecondary,
+                          height: 1.5,
                         ),
                       ),
-                    ),
-                    SizedBox(width: 10),
-                    Text(
-                      '+100 Pts',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.primary,
+                      const SizedBox(height: 12),
+                      const Text(
+                        'Progress',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textSecondary,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                const Text(
-                  'Avoid single-use cups, containers, and packaging at the office. Log waste-free days.',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: AppColors.textSecondary,
-                    height: 1.5,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                const Text(
-                  'Daily streak',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(999),
-                  child: SizedBox(
-                    height: 8,
-                    child: LinearProgressIndicator(
-                      value: 0.72,
-                      backgroundColor: AppColors.progressBackground,
-                      valueColor: const AlwaysStoppedAnimation<Color>(
-                        AppColors.primary,
+                      const SizedBox(height: 8),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(999),
+                        child: SizedBox(
+                          height: 8,
+                          child: LinearProgressIndicator(
+                            value: progress,
+                            backgroundColor: AppColors.progressBackground,
+                            valueColor: const AlwaysStoppedAnimation<Color>(
+                              AppColors.primary,
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
+                      const SizedBox(height: 8),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: Text(
+                          '$completed of $total steps ($percent%)',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-                const SizedBox(height: 8),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: Text(
-                    '5 of 7 days (72%)',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                ),
-              ],
+                );
+              }).toList(),
             ),
-          ),
           const SizedBox(height: 28),
         ],
       ),

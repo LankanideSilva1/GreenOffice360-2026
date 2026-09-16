@@ -20,6 +20,10 @@ class AppRoutes {
   static const employeeReports = '/employee/reports';
 
   static const employeeChallenges = '/employee/challenges';
+  
+  static const employeeRewards = '/employee/rewards';
+
+  static const employeeLeaderboard = '/employee/leaderboard';
 
   static const managerDashboard = '/manager/dashboard';
 

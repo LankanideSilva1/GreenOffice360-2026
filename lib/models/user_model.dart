@@ -46,4 +46,26 @@ class UserModel {
       'points': points,
     };
   }
+
+  UserModel copyWith({
+    String? uid,
+    String? name,
+    String? email,
+    String? employeeId,
+    String? department,
+    String? role,
+    int? greenScore,
+    int? points,
+  }) {
+    return UserModel(
+      uid: uid ?? this.uid,
+      name: name ?? this.name,
+      email: email ?? this.email,
+      employeeId: employeeId ?? this.employeeId,
+      department: department ?? this.department,
+      role: role ?? this.role,
+      greenScore: greenScore ?? this.greenScore,
+      points: points ?? this.points,
+    );
+  }
 }

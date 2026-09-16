@@ -60,13 +60,13 @@ class SyncService {
         await _syncIssue(operation);
         break;
 
-      case 'profile':
-        await _syncProfile(operation);
-        break;
+      // case 'profile':
+      //   await _syncProfile(operation);
+      //   break;
 
-      case 'settings':
-        await _syncSettings(operation);
-        break;
+      // case 'settings':
+      //   await _syncSettings(operation);
+      //   break;
 
       default:
         throw FormatException('Unsupported sync feature: ${operation.feature}');

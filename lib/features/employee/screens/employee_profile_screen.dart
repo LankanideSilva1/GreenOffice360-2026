@@ -4,15 +4,46 @@ import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../../gamification/providers/challenge_provider.dart';
+import '../../gamification/providers/reward_provider.dart';
+import '../../issues/providers/issue_provider.dart';
 
-class EmployeeProfileScreen extends StatelessWidget {
+class EmployeeProfileScreen extends StatefulWidget {
   const EmployeeProfileScreen({super.key});
+
+  @override
+  State<EmployeeProfileScreen> createState() => _EmployeeProfileScreenState();
+}
+
+class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<IssueProvider>().loadIssues();
+        context.read<ChallengeProvider>().loadChallenges();
+        final userId = context.read<AuthProvider>().user?.uid;
+        if (userId != null && userId.isNotEmpty) {
+          context.read<RewardProvider>().loadRewards(userId: userId);
+        }
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final authProvider = context.watch<AuthProvider>();
+    final issueProvider = context.watch<IssueProvider>();
+    final challengeProvider = context.watch<ChallengeProvider>();
+    final rewardProvider = context.watch<RewardProvider>();
+
     final user = authProvider.user;
     final isManager = user?.role.toLowerCase() == 'manager';
+
+    final reports = issueProvider.issues.where((issue) => issue.userId == user?.uid).length;
+    final challenges = challengeProvider.challenges.where((c) => c.progress >= 1.0).length;
+    final redeemed = rewardProvider.redemptions.length;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -27,6 +58,9 @@ class EmployeeProfileScreen extends StatelessWidget {
               : '',
           greenScore: user?.greenScore ?? 0,
           points: user?.points ?? 0,
+          reportsCount: reports,
+          challengesCount: challenges,
+          redeemedCount: redeemed,
           showManagerMode: isManager,
           onLogout: () async {
             await authProvider.logout();
@@ -50,6 +84,9 @@ class EmployeeProfileContent extends StatelessWidget {
     required this.department,
     required this.greenScore,
     required this.points,
+    this.reportsCount = 0,
+    this.challengesCount = 0,
+    this.redeemedCount = 0,
     this.showManagerMode = false,
     this.onLogout,
   });
@@ -59,15 +96,15 @@ class EmployeeProfileContent extends StatelessWidget {
   final String department;
   final int greenScore;
   final int points;
+  final int reportsCount;
+  final int challengesCount;
+  final int redeemedCount;
   final bool showManagerMode;
   final Future<void> Function()? onLogout;
 
   @override
   Widget build(BuildContext context) {
     final initials = _initials(name);
-    final reports = _clampValue((greenScore / 10).round() + 14, 1, 99);
-    final challenges = _clampValue((greenScore ~/ 100) + 5, 1, 99);
-    final redeemed = _clampValue((points ~/ 150) + 1, 1, 99);
     final showEmployeeContent = !showManagerMode;
 
     return SingleChildScrollView(
@@ -234,7 +271,7 @@ class EmployeeProfileContent extends StatelessWidget {
                   Expanded(
                     child: _StatCard(
                       icon: Icons.insert_chart_outlined_rounded,
-                      value: '$reports',
+                      value: '$reportsCount',
                       label: 'Reports',
                     ),
                   ),
@@ -242,7 +279,7 @@ class EmployeeProfileContent extends StatelessWidget {
                   Expanded(
                     child: _StatCard(
                       icon: Icons.emoji_events_outlined,
-                      value: '$challenges',
+                      value: '$challengesCount',
                       label: 'Challenges',
                     ),
                   ),
@@ -250,7 +287,7 @@ class EmployeeProfileContent extends StatelessWidget {
                   Expanded(
                     child: _StatCard(
                       icon: Icons.card_giftcard_outlined,
-                      value: '$redeemed',
+                      value: '$redeemedCount',
                       label: 'Redeemed',
                     ),
                   ),

@@ -124,6 +124,23 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  Future<bool> deductPoints(int pointsToDeduct) async {
+    if (_user == null) return false;
+
+    final newPoints = (_user!.points - pointsToDeduct).clamp(0, 999999);
+    _user = _user!.copyWith(points: newPoints);
+    notifyListeners();
+
+    try {
+      if (_user!.uid.isNotEmpty) {
+        await _controller.updateUserPoints(_user!.uid, newPoints);
+      }
+    } catch (_) {
+      // Ignored if local or offline demo
+    }
+    return true;
+  }
+
   Future<void> logout() async {
     await _controller.logout();
 
