@@ -1,15 +1,22 @@
 import 'package:flutter/foundation.dart';
 
 import '../../../models/leaderboard_model.dart';
+import '../../../services/data_change_notifier.dart';
 import '../controllers/leaderboard_controller.dart';
 
 enum LeaderboardStatus { initial, loading, success, error }
 
 class LeaderboardProvider extends ChangeNotifier {
-  LeaderboardProvider({required LeaderboardController controller})
-    : _controller = controller;
+  LeaderboardProvider({
+    required LeaderboardController controller,
+    DataChangeNotifier? dataChangeNotifier,
+  }) : _controller = controller {
+    _dataChangeSubscription = dataChangeNotifier;
+    dataChangeNotifier?.addListener(_reload);
+  }
 
   final LeaderboardController _controller;
+  DataChangeNotifier? _dataChangeSubscription;
   LeaderboardStatus _status = LeaderboardStatus.initial;
   String? _errorMessage;
   LeaderboardData? _data;
@@ -22,6 +29,18 @@ class LeaderboardProvider extends ChangeNotifier {
   LeaderboardScope get scope => _scope;
   LeaderboardPeriod get period => _period;
   bool get isLoading => _status == LeaderboardStatus.loading;
+
+  void _reload() {
+    if (_data == null) return;
+    loadLeaderboard();
+  }
+
+  @override
+  void dispose() {
+    _dataChangeSubscription?.removeListener(_reload);
+    _dataChangeSubscription = null;
+    super.dispose();
+  }
 
   Future<void> loadLeaderboard({
     LeaderboardScope? scope,

@@ -1,15 +1,22 @@
 import 'package:flutter/foundation.dart';
 
 import '../../../models/challenge_model.dart';
+import '../../../services/data_change_notifier.dart';
 import '../controllers/challenge_controller.dart';
 
 enum ChallengeStatus { initial, loading, success, error }
 
 class ChallengeProvider extends ChangeNotifier {
-  ChallengeProvider({required ChallengeController controller})
-    : _controller = controller;
+  ChallengeProvider({
+    required ChallengeController controller,
+    DataChangeNotifier? dataChangeNotifier,
+  }) : _controller = controller {
+    _dataChangeSubscription = dataChangeNotifier;
+    dataChangeNotifier?.addListener(loadChallenges);
+  }
 
   final ChallengeController _controller;
+  DataChangeNotifier? _dataChangeSubscription;
   ChallengeStatus _status = ChallengeStatus.initial;
   String? _errorMessage;
   final List<ChallengeModel> _challenges = [];
@@ -18,6 +25,13 @@ class ChallengeProvider extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
   List<ChallengeModel> get challenges => List.unmodifiable(_challenges);
   bool get isLoading => _status == ChallengeStatus.loading;
+
+  @override
+  void dispose() {
+    _dataChangeSubscription?.removeListener(loadChallenges);
+    _dataChangeSubscription = null;
+    super.dispose();
+  }
 
   Future<void> loadChallenges() async {
     _status = ChallengeStatus.loading;

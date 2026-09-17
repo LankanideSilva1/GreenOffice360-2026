@@ -6,6 +6,10 @@ class LocalDatabaseService {
   static const String syncQueueBox = 'sync_queue';
   static const String usersBox = 'users';
   static const String settingsBox = 'settings';
+  static const String challengesBox = 'challenges';
+  static const String challengeParticipationBox = 'challenge_participation';
+  static const String rewardsBox = 'rewards';
+  static const String rewardRedemptionsBox = 'reward_redemptions';
 
   Future<void> initialize() async {
     await Hive.initFlutter();
@@ -15,6 +19,10 @@ class LocalDatabaseService {
     await _openBox(syncQueueBox);
     await _openBox(usersBox);
     await _openBox(settingsBox);
+    await _openBox(challengesBox);
+    await _openBox(challengeParticipationBox);
+    await _openBox(rewardsBox);
+    await _openBox(rewardRedemptionsBox);
   }
 
   Future<void> _openBox(String boxName) async {
@@ -37,5 +45,21 @@ class LocalDatabaseService {
 
   Box getSettingsBox() {
     return Hive.box(settingsBox);
+  }
+
+  Box getChallengesBox() {
+    return Hive.box(challengesBox);
+  }
+
+  Box getChallengeParticipationBox() {
+    return Hive.box(challengeParticipationBox);
+  }
+
+  Box getRewardsBox() {
+    return Hive.box(rewardsBox);
+  }
+
+  Box getRewardRedemptionsBox() {
+    return Hive.box(rewardRedemptionsBox);
   }
 }

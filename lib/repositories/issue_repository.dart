@@ -70,9 +70,20 @@ class IssueRepository {
 
       return mergedIssues.values.toList()
         ..sort((first, second) => second.createdAt.compareTo(first.createdAt));
-    } catch (e) {
-      throw Exception('Failed to load issues: $e');
+    } catch (_) {
+      // No connection and no Firestore cache: work purely from Hive.
+      return _getCachedIssues();
     }
+  }
+
+  Future<List<IssueModel>> _getCachedIssues() async {
+    final cachedIssues = await _offlineIssueRepository.getAllIssues();
+
+    return cachedIssues
+        .where((data) => data['id'] is String)
+        .map((data) => IssueModel.fromMap(data, data['id'] as String))
+        .toList()
+      ..sort((first, second) => second.createdAt.compareTo(first.createdAt));
   }
 
   Future<IssueModel> createIssue({
@@ -89,47 +100,76 @@ class IssueRepository {
       // Create Firestore document ID first
       final document = _firestore.collection('issues').doc();
 
-      String? imageUrl = issue.imageUrl;
-
-      // Upload image to Cloudinary
-      if (image != null) {
-        imageUrl = await _cloudinaryService.uploadIssueImage(
-          image: image,
-          issueId: document.id,
-          userId: issue.userId,
-        );
-      }
-
-      // Create final issue object
-      final savedIssue = IssueModel(
+      // Write-through: cache the issue locally (pending) before pushing.
+      final pendingIssue = IssueModel(
         id: document.id,
         userId: issue.userId,
         category: issue.category,
         title: issue.title,
         description: issue.description,
         priority: issue.priority,
-        imageUrl: imageUrl,
+        imageUrl: null,
         latitude: issue.latitude,
         longitude: issue.longitude,
         status: issue.status,
         createdAt: issue.createdAt,
       );
+      await _offlineIssueRepository.saveIssue(
+        issue: pendingIssue,
+        localImagePath: image?.path,
+      );
 
-      await _firestore.runTransaction((transaction) async {
-        final userReference = _firestore.collection('users').doc(issue.userId);
-        final userSnapshot = await transaction.get(userReference);
-        final userData = userSnapshot.data() ?? const <String, dynamic>{};
-        transaction.set(document, {
-          ...savedIssue.toMap(),
-          'greenScoreAwards': {'reported': true},
-        });
-        transaction.update(userReference, {
-          'greenScore': _toInt(userData['greenScore']) + 10,
-          'points': _toInt(userData['points']) + 10,
-        });
-      });
+      try {
+        String? imageUrl = issue.imageUrl;
 
-      return savedIssue;
+        // Upload image to Cloudinary
+        if (image != null) {
+          imageUrl = await _cloudinaryService.uploadIssueImage(
+            image: image,
+            issueId: document.id,
+            userId: issue.userId,
+          );
+        }
+
+        // Create final issue object
+        final savedIssue = IssueModel(
+          id: document.id,
+          userId: issue.userId,
+          category: issue.category,
+          title: issue.title,
+          description: issue.description,
+          priority: issue.priority,
+          imageUrl: imageUrl,
+          latitude: issue.latitude,
+          longitude: issue.longitude,
+          status: issue.status,
+          createdAt: issue.createdAt,
+        );
+
+        await _firestore.runTransaction((transaction) async {
+          final userReference = _firestore.collection('users').doc(issue.userId);
+          final userSnapshot = await transaction.get(userReference);
+          final userData = userSnapshot.data() ?? const <String, dynamic>{};
+          transaction.set(document, {
+            ...savedIssue.toMap(),
+            'greenScoreAwards': {'reported': true},
+          });
+          transaction.update(userReference, {
+            'greenScore': _toInt(userData['greenScore']) + 10,
+            'points': _toInt(userData['points']) + 10,
+          });
+        });
+
+        // Push succeeded: refresh the cache entry and mark it synced.
+        await _offlineIssueRepository.cacheIssue(savedIssue);
+        await _offlineIssueRepository.markAsSynced(document.id);
+
+        return savedIssue;
+      } catch (_) {
+        // Push failed: keep the cached copy and queue it for the next sync.
+        await _queueIssueCreate(pendingIssue, localImagePath: image?.path);
+        return pendingIssue;
+      }
     } catch (e) {
       throw Exception('Failed to create issue: $e');
     }
@@ -140,8 +180,20 @@ class IssueRepository {
     required String status,
   }) async {
     try {
-      final issueReference = _firestore.collection('issues').doc(issueId);
-      await _firestore.runTransaction((transaction) async {
+      // Write-through: update the local cache first.
+      await _offlineIssueRepository.updateIssueFields(issueId, {
+        'status': status,
+      });
+
+      final hasInternet = await _connectivityService.hasInternetConnection();
+      if (!hasInternet) {
+        await _queueIssueUpdate(issueId, {'status': status});
+        return;
+      }
+
+      try {
+        final issueReference = _firestore.collection('issues').doc(issueId);
+        await _firestore.runTransaction((transaction) async {
         final snapshot = await transaction.get(issueReference);
         final data = snapshot.data() ?? const <String, dynamic>{};
         final currentStatus = (data['status'] as String? ?? '').toLowerCase();
@@ -180,10 +232,53 @@ class IssueRepository {
             'points': _toInt(userData['points']) + awardPoints,
           });
         }
-      });
+        });
+        await _offlineIssueRepository.markAsSynced(issueId);
+      } catch (_) {
+        // Push failed: queue the status change for the next sync.
+        await _queueIssueUpdate(issueId, {'status': status});
+      }
     } catch (e) {
       throw Exception('Failed to update issue status: $e');
     }
+  }
+
+  /// Queue a new issue so only newly created data syncs when the
+  /// connection returns.
+  Future<void> _queueIssueCreate(
+    IssueModel issue, {
+    String? localImagePath,
+  }) async {
+    await _syncQueueRepository.addOperation(
+      SyncOperationModel(
+        id: issue.id!,
+        feature: 'issue',
+        operation: 'create',
+        data: {
+          ...issue.toMap(),
+          'id': issue.id,
+          'localImagePath': localImagePath,
+        },
+        createdAt: issue.createdAt,
+      ),
+    );
+  }
+
+  /// Queue a field update. The operation id is distinct from create and
+  /// assignment operations so pending changes never overwrite each other.
+  Future<void> _queueIssueUpdate(
+    String issueId,
+    Map<String, dynamic> fields,
+  ) async {
+    await _syncQueueRepository.addOperation(
+      SyncOperationModel(
+        id: 'update_$issueId',
+        feature: 'issue',
+        operation: 'update',
+        data: {'id': issueId, ...fields},
+        createdAt: DateTime.now(),
+      ),
+    );
   }
 
   String? _issueAwardKey(String status) {
@@ -212,7 +307,6 @@ class IssueRepository {
     String? specialInstructions,
   }) async {
     try {
-      final hasInternet = await _connectivityService.hasInternetConnection();
       final assignmentData = <String, dynamic>{
         'assigneeName': assigneeName,
         'priority': priority,
@@ -228,41 +322,48 @@ class IssueRepository {
         assignmentData['specialInstructions'] = specialInstructions;
       }
 
-      if (!hasInternet) {
-        await _offlineIssueRepository.updateIssueFields(
-          issueId,
-          assignmentData,
-        );
-        await _syncQueueRepository.addOperation(
-          SyncOperationModel(
-            id: issueId.startsWith('offline_')
-                ? 'assignment_$issueId'
-                : issueId,
-            feature: 'issue',
-            operation: 'update',
-            data: {'id': issueId, ...assignmentData},
-            createdAt: DateTime.now(),
-          ),
-        );
-        return;
+      // Write-through: update the local cache first.
+      await _offlineIssueRepository.updateIssueFields(
+        issueId,
+        assignmentData,
+      );
+
+      final hasInternet = await _connectivityService.hasInternetConnection();
+
+      if (hasInternet) {
+        final data = <String, dynamic>{
+          'assigneeName': assigneeName,
+          'priority': priority,
+          'status': status,
+          'updatedAt': FieldValue.serverTimestamp(),
+        };
+
+        if (deadline != null) {
+          data['deadline'] = Timestamp.fromDate(deadline);
+        }
+
+        if (specialInstructions != null) {
+          data['specialInstructions'] = specialInstructions;
+        }
+
+        try {
+          await _firestore.collection('issues').doc(issueId).update(data);
+          await _offlineIssueRepository.markAsSynced(issueId);
+          return;
+        } catch (_) {
+          // Fall through and queue the assignment for the next sync.
+        }
       }
 
-      final data = {
-        'assigneeName': assigneeName,
-        'priority': priority,
-        'status': status,
-        'updatedAt': FieldValue.serverTimestamp(),
-      };
-
-      if (deadline != null) {
-        data['deadline'] = Timestamp.fromDate(deadline);
-      }
-
-      if (specialInstructions != null) {
-        data['specialInstructions'] = specialInstructions;
-      }
-
-      await _firestore.collection('issues').doc(issueId).update(data);
+      await _syncQueueRepository.addOperation(
+        SyncOperationModel(
+          id: 'assignment_$issueId',
+          feature: 'issue',
+          operation: 'update',
+          data: {'id': issueId, ...assignmentData},
+          createdAt: DateTime.now(),
+        ),
+      );
     } catch (e) {
       throw Exception('Failed to assign issue: $e');
     }
@@ -297,19 +398,7 @@ class IssueRepository {
       localImagePath: localImagePath,
     );
 
-    await _syncQueueRepository.addOperation(
-      SyncOperationModel(
-        id: localId,
-        feature: 'issue',
-        operation: 'create',
-        data: {
-          ...offlineIssue.toMap(),
-          'id': localId,
-          'localImagePath': localImagePath,
-        },
-        createdAt: offlineIssue.createdAt,
-      ),
-    );
+    await _queueIssueCreate(offlineIssue, localImagePath: localImagePath);
 
     return offlineIssue;
   }

@@ -1,13 +1,17 @@
 import 'package:greenoffice360/repositories/auth_repository.dart';
+import 'package:greenoffice360/services/cache_service.dart';
 
 import '../../../models/user_model.dart';
 
 class AuthController {
   final AuthRepository _repository;
+  final CacheService _cacheService;
 
   AuthController({
     required AuthRepository repository,
-  }) : _repository = repository;
+    CacheService? cacheService,
+  }) : _repository = repository,
+       _cacheService = cacheService ?? CacheService();
 
   Future<UserModel> login({
     required String email,
@@ -61,5 +65,16 @@ class AuthController {
 
   Future<UserModel> getUserProfile(String uid) async {
     return _repository.getUserProfile(uid);
+  }
+
+  /// Pull all real data from Firestore into the Hive cache so the user
+  /// can keep working offline. Never throws: the app continues with
+  /// whatever is already cached.
+  Future<void> hydrateCache({String? userId}) async {
+    try {
+      await _cacheService.hydrateAll(userId: userId);
+    } catch (_) {
+      // Offline: keep working from the existing cache.
+    }
   }
 }

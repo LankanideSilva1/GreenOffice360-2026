@@ -2,18 +2,40 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../../models/user_model.dart';
+import '../../models/sync_operation_model.dart';
+import '../../services/connectivity_service.dart';
+import 'offline/offline_user_repository.dart';
+import 'offline/sync_queue_repository.dart';
 
 class AuthRepository {
-  final FirebaseAuth _firebaseAuth;
-  final FirebaseFirestore _firestore;
+  // Resolved lazily so constructing the repository never requires
+  // Firebase to be initialized (e.g. in unit tests).
+  FirebaseAuth? _firebaseAuthInstance;
+  FirebaseFirestore? _firestoreInstance;
+  final ConnectivityService _connectivityService;
+  final OfflineUserRepository _offlineUserRepository;
+  final SyncQueueRepository _syncQueueRepository;
 
   AuthRepository({
     FirebaseAuth? firebaseAuth,
     FirebaseFirestore? firestore,
-  })  : _firebaseAuth =
-            firebaseAuth ?? FirebaseAuth.instance,
-        _firestore =
-            firestore ?? FirebaseFirestore.instance;
+    ConnectivityService? connectivityService,
+    OfflineUserRepository? offlineUserRepository,
+    SyncQueueRepository? syncQueueRepository,
+  })  : _firebaseAuthInstance = firebaseAuth,
+        _firestoreInstance = firestore,
+        _connectivityService =
+            connectivityService ?? ConnectivityService(),
+        _offlineUserRepository =
+            offlineUserRepository ?? OfflineUserRepository(),
+        _syncQueueRepository =
+            syncQueueRepository ?? SyncQueueRepository();
+
+  FirebaseAuth get _firebaseAuth =>
+      _firebaseAuthInstance ??= FirebaseAuth.instance;
+
+  FirebaseFirestore get _firestore =>
+      _firestoreInstance ??= FirebaseFirestore.instance;
 
   Future<UserModel> login({
     required String email,
@@ -67,24 +89,39 @@ class AuthRepository {
         .doc(firebaseUser.uid)
         .set(user.toMap());
 
+    await _offlineUserRepository.cacheUser(user);
+
     return user;
   }
 
   Future<UserModel> getUserProfile(String uid) async {
-    final document = await _firestore
-        .collection('users')
-        .doc(uid)
-        .get();
+    if (await _connectivityService.hasInternetConnection()) {
+      try {
+        final document = await _firestore
+            .collection('users')
+            .doc(uid)
+            .get();
 
-    if (!document.exists || document.data() == null) {
-      throw Exception(
-        'User profile was not found.',
-      );
+        if (document.exists && document.data() != null) {
+          final user = UserModel.fromMap(
+            document.id,
+            document.data()!,
+          );
+          await _offlineUserRepository.cacheUser(user);
+          return user;
+        }
+      } catch (_) {
+        // Fall through to the local cache.
+      }
     }
 
-    return UserModel.fromMap(
-      document.id,
-      document.data()!,
+    final cached = await _offlineUserRepository.getUser(uid);
+    if (cached != null) {
+      return cached;
+    }
+
+    throw Exception(
+      'User profile was not found.',
     );
   }
 
@@ -96,11 +133,46 @@ class AuthRepository {
     );
   }
 
+  /// Write-through: the local cache is updated first, then the change is
+  /// pushed to Firebase. When offline (or the push fails) the change is
+  /// queued so only the pending update syncs once connectivity returns.
   Future<void> updateUserPoints(String uid, int newPoints) async {
     if (uid.isEmpty) return;
-    await _firestore.collection('users').doc(uid).update({
+
+    await _offlineUserRepository.updateUserFields(uid, {
       'points': newPoints,
     });
+
+    if (await _connectivityService.hasInternetConnection()) {
+      try {
+        await _firestore.collection('users').doc(uid).update({
+          'points': newPoints,
+        });
+        await _offlineUserRepository.markAsSynced(uid);
+        return;
+      } catch (_) {
+        // Fall through and queue the change for the next sync.
+      }
+    }
+
+    final cached = await _offlineUserRepository.getUserData(uid);
+    final profileData = <String, dynamic>{
+      if (cached != null) ...cached,
+      'userId': uid,
+      'points': newPoints,
+    }
+      ..remove('id')
+      ..remove('syncStatus');
+
+    await _syncQueueRepository.addOperation(
+      SyncOperationModel(
+        id: 'profile_$uid',
+        feature: 'profile',
+        operation: 'update',
+        data: profileData,
+        createdAt: DateTime.now(),
+      ),
+    );
   }
 
   Future<void> logout() async {

@@ -100,6 +100,9 @@ class _FakeAuthController extends AuthController {
       points: 85,
     );
   }
+
+  @override
+  Future<void> hydrateCache({String? userId}) async {}
 }
 
 void main() {
@@ -111,7 +114,7 @@ void main() {
       password: 'password',
     );
 
-    expect(loggedIn.points, 35);
+    expect(loggedIn, isTrue);
     expect(provider.user?.points, 35);
 
     await provider.refreshCurrentUser();
@@ -123,10 +126,17 @@ void main() {
   testWidgets('tapping a challenge opens its detail screen', (tester) async {
     final repository = _FakeChallengeRepository();
     await tester.pumpWidget(
-      ChangeNotifierProvider<ChallengeProvider>(
-        create: (_) => ChallengeProvider(
-          controller: ChallengeController(repository: repository),
-        ),
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider<AuthProvider>(
+            create: (_) => AuthProvider(controller: _FakeAuthController()),
+          ),
+          ChangeNotifierProvider<ChallengeProvider>(
+            create: (_) => ChallengeProvider(
+              controller: ChallengeController(repository: repository),
+            ),
+          ),
+        ],
         child: MaterialApp(
           home: Scaffold(
             body: Padding(

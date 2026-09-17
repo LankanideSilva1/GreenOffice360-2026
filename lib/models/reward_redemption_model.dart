@@ -25,6 +25,8 @@ class RewardRedemptionModel {
       parsedDate = DateTime.tryParse(data['redeemedAt'] as String) ?? DateTime.now();
     } else if (data['redeemedAt'] is Timestamp) {
       parsedDate = (data['redeemedAt'] as Timestamp).toDate();
+    } else if (data['redeemedAt'] is DateTime) {
+      parsedDate = data['redeemedAt'] as DateTime;
     } else {
       parsedDate = DateTime.now();
     }

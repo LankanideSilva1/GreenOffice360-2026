@@ -2,6 +2,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../models/leaderboard_model.dart';
+import '../services/connectivity_service.dart';
+import '../services/hive_cache_sanitizer.dart';
+import 'offline/offline_challenge_repository.dart';
+import 'offline/offline_user_repository.dart';
 
 abstract class LeaderboardRepository {
   Future<LeaderboardData> getLeaderboard({
@@ -14,36 +18,85 @@ class FirestoreLeaderboardRepository implements LeaderboardRepository {
   FirestoreLeaderboardRepository({
     FirebaseFirestore? firestore,
     FirebaseAuth? firebaseAuth,
+    ConnectivityService? connectivityService,
+    OfflineUserRepository? offlineUserRepository,
+    OfflineChallengeRepository? offlineChallengeRepository,
   }) : _firestore = firestore ?? FirebaseFirestore.instance,
-       _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance;
+       _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance,
+       _connectivityService = connectivityService ?? ConnectivityService(),
+       _offlineUserRepository =
+           offlineUserRepository ?? OfflineUserRepository(),
+       _offlineChallengeRepository =
+           offlineChallengeRepository ?? OfflineChallengeRepository();
 
   final FirebaseFirestore _firestore;
   final FirebaseAuth _firebaseAuth;
+  final ConnectivityService _connectivityService;
+  final OfflineUserRepository _offlineUserRepository;
+  final OfflineChallengeRepository _offlineChallengeRepository;
 
   @override
   Future<LeaderboardData> getLeaderboard({
     required LeaderboardScope scope,
     required LeaderboardPeriod period,
   }) async {
-    final usersSnapshot = await _firestore.collection('users').get();
-    final challengesSnapshot = await _firestore.collection('challenges').get();
-    final participationSnapshot = await _firestore
-        .collection('challengeParticipation')
-        .get(
-          const GetOptions(
-            serverTimestampBehavior: ServerTimestampBehavior.estimate,
-          ),
-        );
+    Map<String, Map<String, dynamic>> allUsers;
+    Set<String> challengeIds;
+    List<Map<String, dynamic>> participationsData;
+
+    if (await _connectivityService.hasInternetConnection()) {
+      try {
+        final usersSnapshot = await _firestore.collection('users').get();
+        final challengesSnapshot = await _firestore
+            .collection('challenges')
+            .get();
+        final participationSnapshot = await _firestore
+            .collection('challengeParticipation')
+            .get(
+              const GetOptions(
+                serverTimestampBehavior: ServerTimestampBehavior.estimate,
+              ),
+            );
+
+        allUsers = {
+          for (final document in usersSnapshot.docs)
+            document.id: sanitizeMapForHive(document.data()),
+        };
+        challengeIds = challengesSnapshot.docs
+            .map((document) => document.id)
+            .toSet();
+        participationsData = participationSnapshot.docs
+            .map((doc) => sanitizeMapForHive(doc.data())..['id'] = doc.id)
+            .toList();
+
+        // Refresh the local cache so every screen can work offline.
+        for (final entry in allUsers.entries) {
+          await _offlineUserRepository.cacheUserData(entry.key, entry.value);
+        }
+        for (final doc in challengesSnapshot.docs) {
+          await _offlineChallengeRepository.cacheChallenge(
+            doc.id,
+            sanitizeMapForHive(doc.data()),
+          );
+        }
+        for (final doc in participationSnapshot.docs) {
+          await _offlineChallengeRepository.cacheParticipation(
+            doc.id,
+            sanitizeMapForHive(doc.data()),
+          );
+        }
+      } catch (_) {
+        (allUsers, challengeIds, participationsData) = await _loadFromCache();
+      }
+    } else {
+      (allUsers, challengeIds, participationsData) = await _loadFromCache();
+    }
 
     final users = {
-      for (final document in usersSnapshot.docs)
-        if ((document.data()['role'] as String? ?? '').toLowerCase() !=
-            'manager')
-          document.id: document.data(),
+      for (final entry in allUsers.entries)
+        if ((entry.value['role'] as String? ?? '').toLowerCase() != 'manager')
+          entry.key: entry.value,
     };
-    final challengeIds = challengesSnapshot.docs
-        .map((document) => document.id)
-        .toSet();
     final startDate = _startDate(period);
     final scores = <String, int>{};
     final periodUserIds = <String>{};
@@ -57,8 +110,7 @@ class FirestoreLeaderboardRepository implements LeaderboardRepository {
       }
     }
 
-    for (final document in participationSnapshot.docs) {
-      final data = document.data();
+    for (final data in participationsData) {
       final challengeId = data['challengeId'] as String?;
       final userId = data['userId'] as String?;
       if (challengeId == null ||
@@ -138,6 +190,26 @@ class FirestoreLeaderboardRepository implements LeaderboardRepository {
       currentUser: currentUser,
       nextEntry: nextEntry,
     );
+  }
+
+  /// Load leaderboard source data from the Hive cache for offline use.
+  Future<(Map<String, Map<String, dynamic>>, Set<String>, List<Map<String, dynamic>>)>
+  _loadFromCache() async {
+    final usersData = await _offlineUserRepository.getAllUsersData();
+    final challengesData = await _offlineChallengeRepository.getAllChallenges();
+    final participationsData =
+        await _offlineChallengeRepository.getAllParticipations();
+
+    final users = <String, Map<String, dynamic>>{
+      for (final data in usersData)
+        if (data['id'] is String) data['id'] as String: data,
+    };
+    final challengeIds = challengesData
+        .map((data) => data['id'])
+        .whereType<String>()
+        .toSet();
+
+    return (users, challengeIds, participationsData);
   }
 
   DateTime? _startDate(LeaderboardPeriod period) {

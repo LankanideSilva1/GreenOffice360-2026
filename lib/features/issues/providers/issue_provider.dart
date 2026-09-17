@@ -4,14 +4,22 @@ import 'package:flutter/foundation.dart';
 
 import '../../../models/issue_model.dart';
 import '../../../models/user_model.dart';
+import '../../../services/data_change_notifier.dart';
 import '../controllers/issue_controller.dart';
 
 enum IssueStatus { initial, loading, success, error }
 
 class IssueProvider extends ChangeNotifier {
-  IssueProvider({required IssueController controller}) : _controller = controller;
+  IssueProvider({
+    required IssueController controller,
+    DataChangeNotifier? dataChangeNotifier,
+  }) : _controller = controller {
+    _dataChangeSubscription = dataChangeNotifier;
+    dataChangeNotifier?.addListener(loadIssues);
+  }
 
   final IssueController _controller;
+  DataChangeNotifier? _dataChangeSubscription;
   IssueStatus _status = IssueStatus.initial;
   String? _errorMessage;
   double? _latitude;
@@ -30,6 +38,13 @@ class IssueProvider extends ChangeNotifier {
   UserModel? get reporter => _reporter;
   List<UserModel> get employees => _employees;
   bool get isLoading => _status == IssueStatus.loading;
+
+  @override
+  void dispose() {
+    _dataChangeSubscription?.removeListener(loadIssues);
+    _dataChangeSubscription = null;
+    super.dispose();
+  }
 
   Future<void> loadIssues() async {
     _status = IssueStatus.loading;

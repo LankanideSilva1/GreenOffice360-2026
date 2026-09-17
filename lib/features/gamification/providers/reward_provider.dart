@@ -2,15 +2,23 @@ import 'package:flutter/foundation.dart';
 
 import '../../../models/reward_model.dart';
 import '../../../models/reward_redemption_model.dart';
+import '../../../services/data_change_notifier.dart';
 import '../controllers/reward_controller.dart';
 
 enum RewardStatus { initial, loading, success, error }
 
 class RewardProvider extends ChangeNotifier {
-  RewardProvider({required RewardController controller})
-    : _controller = controller;
+  RewardProvider({
+    required RewardController controller,
+    DataChangeNotifier? dataChangeNotifier,
+  }) : _controller = controller {
+    _dataChangeSubscription = dataChangeNotifier;
+    dataChangeNotifier?.addListener(_reload);
+  }
 
   final RewardController _controller;
+  DataChangeNotifier? _dataChangeSubscription;
+  String? _lastUserId;
   RewardStatus _status = RewardStatus.initial;
   String? _errorMessage;
   final List<RewardModel> _rewards = [];
@@ -22,7 +30,20 @@ class RewardProvider extends ChangeNotifier {
   List<RewardModel> get rewards => List.unmodifiable(_rewards);
   List<RewardRedemptionModel> get redemptions => List.unmodifiable(_redemptions);
 
+  void _reload() {
+    if (_rewards.isEmpty) return;
+    loadRewards(userId: _lastUserId);
+  }
+
+  @override
+  void dispose() {
+    _dataChangeSubscription?.removeListener(_reload);
+    _dataChangeSubscription = null;
+    super.dispose();
+  }
+
   Future<void> loadRewards({String? userId}) async {
+    _lastUserId = userId ?? _lastUserId;
     _status = RewardStatus.loading;
     _errorMessage = null;
     notifyListeners();

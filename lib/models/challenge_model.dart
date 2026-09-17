@@ -65,7 +65,26 @@ class ChallengeModel {
     double progress = 0,
     List<String> completedSubstepIds = const [],
   }) {
-    final data = document.data() ?? const <String, dynamic>{};
+    return ChallengeModel.fromMap(
+      document.data() ?? const <String, dynamic>{},
+      document.id,
+      joinedByUser: joinedByUser,
+      participantCount: participantCount,
+      progress: progress,
+      completedSubstepIds: completedSubstepIds,
+    );
+  }
+
+  /// Builds a challenge from a plain data map (Firestore document data or
+  /// a Hive cache entry).
+  factory ChallengeModel.fromMap(
+    Map<String, dynamic> data,
+    String id, {
+    bool joinedByUser = false,
+    int participantCount = 0,
+    double progress = 0,
+    List<String> completedSubstepIds = const [],
+  }) {
     final rawSubsteps = data['substeps'];
     final substeps = rawSubsteps is List
         ? rawSubsteps
@@ -78,7 +97,7 @@ class ChallengeModel {
         : <ChallengeSubstep>[];
 
     return ChallengeModel(
-      id: document.id,
+      id: id,
       title: data['title'] as String? ?? '',
       description: data['description'] as String? ?? '',
       category: data['category'] as String? ?? '',

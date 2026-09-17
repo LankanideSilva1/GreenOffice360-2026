@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../../../models/user_model.dart';
+import '../../../services/data_change_notifier.dart';
 import '../controllers/auth_controller.dart';
 
 enum AuthStatus {
@@ -13,10 +14,15 @@ enum AuthStatus {
 
 class AuthProvider extends ChangeNotifier {
   final AuthController _controller;
+  DataChangeNotifier? _dataChangeSubscription;
 
   AuthProvider({
     required AuthController controller,
-  }) : _controller = controller;
+    DataChangeNotifier? dataChangeNotifier,
+  }) : _controller = controller {
+    _dataChangeSubscription = dataChangeNotifier;
+    dataChangeNotifier?.addListener(refreshPointsFromCache);
+  }
 
   AuthStatus _status = AuthStatus.initial;
 
@@ -56,6 +62,9 @@ class AuthProvider extends ChangeNotifier {
 
       notifyListeners();
 
+      // Load a full local cache of real data for offline use.
+      await _controller.hydrateCache(userId: user.uid);
+
       return true;
     } catch (e) {
       _status = AuthStatus.error;
@@ -91,6 +100,9 @@ class AuthProvider extends ChangeNotifier {
 
       notifyListeners();
 
+      // Load a full local cache of real data for offline use.
+      await _controller.hydrateCache(userId: user.uid);
+
       return true;
     } catch (e) {
       _status = AuthStatus.error;
@@ -117,11 +129,30 @@ class AuthProvider extends ChangeNotifier {
       _status = AuthStatus.authenticated;
       _errorMessage = null;
       notifyListeners();
-    } catch (error) {
-      _status = AuthStatus.error;
-      _errorMessage = _getErrorMessage(error);
-      notifyListeners();
+    } catch (_) {
+      // Keep the current user (e.g. when the refresh runs while offline).
     }
+  }
+
+  /// Refresh only points/score from the local cache after a sync, without
+  /// touching auth status or showing errors.
+  Future<void> refreshPointsFromCache() async {
+    if (_user == null) return;
+
+    try {
+      final refreshedUser = await _controller.refreshCurrentUser();
+      _user = refreshedUser;
+      notifyListeners();
+    } catch (_) {
+      // Keep the current user.
+    }
+  }
+
+  @override
+  void dispose() {
+    _dataChangeSubscription?.removeListener(refreshPointsFromCache);
+    _dataChangeSubscription = null;
+    super.dispose();
   }
 
   Future<bool> deductPoints(int pointsToDeduct) async {

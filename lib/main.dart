@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:firebase_auth/firebase_auth.dart' show FirebaseAuth;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:greenoffice360/core/routes/app_routes.dart';
@@ -26,8 +29,10 @@ import 'package:greenoffice360/features/manager/screens/manager_issue_detail.dar
 import 'package:greenoffice360/models/issue_model.dart';
 import 'package:greenoffice360/repositories/offline/offline_issue_repository.dart';
 import 'package:greenoffice360/repositories/offline/sync_queue_repository.dart';
+import 'package:greenoffice360/services/cache_service.dart';
 import 'package:greenoffice360/services/cloudinary_service.dart';
 import 'package:greenoffice360/services/connectivity_service.dart';
+import 'package:greenoffice360/services/data_change_notifier.dart';
 import 'package:greenoffice360/services/local_database_service.dart';
 import 'package:greenoffice360/services/sync_service.dart';
 import 'package:hive/hive.dart';
@@ -50,21 +55,38 @@ Future<void> main() async {
   final connectivityService = ConnectivityService();
   final offlineIssueRepository = OfflineIssueRepository();
   final syncQueueRepository = SyncQueueRepository();
+  final cacheService = CacheService(connectivityService: connectivityService);
+  final dataChangeNotifier = DataChangeNotifier();
   final syncService = SyncService(
     connectivityService: connectivityService,
     syncQueueRepository: syncQueueRepository,
     offlineIssueRepository: offlineIssueRepository,
     cloudinaryService: CloudinaryService(),
+    cacheService: cacheService,
+    dataChangeNotifier: dataChangeNotifier,
   );
   // Start automatic synchronization
   syncService.startAutoSync();
+
+  // Keep a full local cache of real data so the app works offline.
+  final currentUser = FirebaseAuth.instance.currentUser;
+  if (currentUser != null) {
+    unawaited(cacheService.hydrateAll(userId: currentUser.uid));
+  }
+
   final authRepository = AuthRepository();
-  final authController = AuthController(repository: authRepository);
+  final authController = AuthController(
+    repository: authRepository,
+    cacheService: cacheService,
+  );
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider<AuthProvider>(
-          create: (_) => AuthProvider(controller: authController),
+          create: (_) => AuthProvider(
+            controller: authController,
+            dataChangeNotifier: dataChangeNotifier,
+          ),
         ),
         Provider<CloudinaryService>(create: (_) => CloudinaryService()),
         ChangeNotifierProvider<IssueProvider>(
@@ -75,6 +97,7 @@ Future<void> main() async {
                 syncQueueRepository: syncQueueRepository,
               ),
             ),
+            dataChangeNotifier: dataChangeNotifier,
           ),
         ),
         ChangeNotifierProvider<ChallengeProvider>(
@@ -82,6 +105,7 @@ Future<void> main() async {
             controller: ChallengeController(
               repository: FirestoreChallengeRepository(),
             ),
+            dataChangeNotifier: dataChangeNotifier,
           ),
         ),
         ChangeNotifierProvider<LeaderboardProvider>(
@@ -89,6 +113,7 @@ Future<void> main() async {
             controller: LeaderboardController(
               repository: FirestoreLeaderboardRepository(),
             ),
+            dataChangeNotifier: dataChangeNotifier,
           ),
         ),
         ChangeNotifierProvider<RewardProvider>(
@@ -96,6 +121,7 @@ Future<void> main() async {
             controller: RewardController(
               repository: FirestoreRewardRepository(),
             ),
+            dataChangeNotifier: dataChangeNotifier,
           ),
         ),
       ],
